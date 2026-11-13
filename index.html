@@ -72,6 +72,11 @@ main{max-width:760px;margin:0 auto;padding:12px 16px 24px}
 .chip.gruen{background:transparent;border:1px solid var(--gruen);color:var(--gruen)}
 
 .rezept h2{font-size:28px;margin:6px 0 6px}
+.foto{display:block;width:calc(100% + 32px);margin:-12px -16px 10px;aspect-ratio:4/3;object-fit:cover;background:var(--linie)}
+@media (min-width:700px){.foto{width:100%;margin:0 0 10px;border-radius:16px}}
+.rk{display:flex!important;gap:12px;align-items:center}
+.rk .txt{flex:1;min-width:0}
+.rk img{width:76px;height:76px;border-radius:10px;object-fit:cover;flex:0 0 76px;background:var(--linie)}
 .kurz{color:var(--leise);margin:0 0 8px;font-size:17px}
 .meta{font-size:14px;color:var(--leise);margin:4px 0}
 .abschnitt{background:var(--karte);border-radius:16px;padding:16px;margin:14px 0;box-shadow:var(--schatten)}
@@ -186,7 +191,7 @@ label{display:block;font-size:14px;color:var(--leise);margin:10px 0 4px}
 
 <script>
 'use strict';
-const VERSION = '202611130944';
+const VERSION = '202611131007';
 const REPO = 'cmengro65/kochbuch';
 const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Typ'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
@@ -249,6 +254,8 @@ async function start(){
   await ladeTagebuch();
   // Gespeicherte Anmeldung vor dem Aufräumen durch den Browser schützen
   try{ navigator.storage?.persist?.(); }catch(e){}
+  // Alle Fotos im Hintergrund laden, damit sie auch ohne Internet da sind
+  setTimeout(() => DATEN.rezepte.filter(r => r.bild).forEach(r => fetch(r.bild).catch(() => {})), 3000);
   $('#anmeldung').hidden = true; $('#app').hidden = false;
   zeigen();
 }
@@ -390,8 +397,9 @@ function karten(liste, leer = 'Keine Rezepte.'){
   return `<div class="karten">${liste.map(r => {
     const n = (TB.eintraege[r.id] || []).length, s = sterneSchnitt(r.id);
     const unter = [ (r.typ||[]).join(' · '), n ? `${n}× gekocht` : '', s ? '★ ' + zahl(Math.round(s*2)/2) : '' ].filter(Boolean).join('  ·  ');
-    return `<a class="rk" href="#/rezept/${encodeURIComponent(r.id)}"><h3>${esc(r.titel)}</h3><p>${esc(r.kurzbeschreibung)}</p>
-      ${unter ? `<div class="unter">${esc(unter)}</div>` : ''}</a>`;
+    return `<a class="rk" href="#/rezept/${encodeURIComponent(r.id)}">${r.bild ? `<img src="${esc(r.bild)}" alt="" loading="lazy">` : ''}
+      <div class="txt"><h3>${esc(r.titel)}</h3><p>${esc(r.kurzbeschreibung)}</p>
+      ${unter ? `<div class="unter">${esc(unter)}</div>` : ''}</div></a>`;
   }).join('')}</div>`;
 }
 function seiteListe(main, gruppe, tag){
@@ -422,6 +430,7 @@ function seiteRezept(main, r){
   }
 
   main.innerHTML = `<article class="rezept">
+    ${r.bild ? `<img class="foto" src="${esc(r.bild)}" alt="${esc(r.titel)}">` : ''}
     <h2>${esc(r.titel)}</h2>
     <p class="kurz">${esc(r.kurzbeschreibung)}</p>
     <div class="chips">${chipGr('typ')}${chipGr('anlass')}${chipGr('hauptzutat')}
@@ -580,7 +589,7 @@ async function kochModus(r){
     let sek = 0;
     if(uhr){ const n = +(uhr[2] || uhr[1]); sek = /^Std/i.test(uhr[3]) ? n*3600 : /^Sek/i.test(uhr[3]) ? n : n*60; }
     box.innerHTML = `<div class="oben"><b>${esc(r.titel)}</b>
-        ${hatTM ? `<div class="umschalter" style="margin:0"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">TM</button><button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
+        ${hatTM ? `<div class="umschalter" style="margin:0"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">Thermomix</button><button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
         <button class="knopf" id="kochZu">Fertig</button></div>
       <details style="margin-top:10px"><summary class="hinweis">Zutaten (${PORT[r.id] ?? r.portionen} Port.)</summary>
         <ul class="zutaten">${(r.zutaten||[]).map(z => { const zz = zutatZeile(z, (PORT[r.id] ?? r.portionen) / r.portionen); return `<li><span class="m">${esc(zz.m)}</span><span>${esc(zz.n)}</span></li>`; }).join('')}</ul></details>
@@ -755,6 +764,21 @@ function installHinweis(){
   return `<div id="installieren"><span>📲 ${ios ? 'Als App ablegen: unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.'
     : 'Als App ablegen: im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> wählen.'}</span><button aria-label="Schließen">✕</button></div>`;
 }
+
+// Beim Zurückkehren in die App nach neuen Rezepten schauen (Home-Bildschirm-Apps starten nicht neu)
+let zuletztGeprueft = Date.now();
+document.addEventListener('visibilitychange', async () => {
+  if(document.hidden || !DATEN || !SCHL || Date.now() - zuletztGeprueft < 30000) return;
+  zuletztGeprueft = Date.now();
+  const u = await ladeUmschlag('daten.enc');
+  if(!u || u.ct === UMSCHLAG.ct) return;
+  try{
+    const neu = await entschluesseln(u, SCHL.roh);
+    UMSCHLAG = u; DATEN = neu; await ladeTagebuch();
+    if($('#koch').hidden) zeigen();
+    meldung('Kochbuch aktualisiert.');
+  }catch(e){}
+});
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 start();

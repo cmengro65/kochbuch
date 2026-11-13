@@ -1,12 +1,12 @@
 // Service Worker: hält die App ohne Internet verfügbar.
-const CACHE = 'kochbuch-202611130944';
+const CACHE = 'kochbuch-202611131007';
 const SCHALE = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SCHALE)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n !== CACHE).map(n => caches.delete(n))))
+  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n !== CACHE && n !== 'kochbuch-bilder').map(n => caches.delete(n))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
@@ -18,6 +18,14 @@ self.addEventListener('fetch', e => {
       if(r.ok){ const k = r.clone(); caches.open(CACHE).then(c => c.put(url.pathname, k)); }
       return r;
     }).catch(() => caches.match(url.pathname)));
+    return;
+  }
+  // Fotos: einmal laden, dann dauerhaft aus dem Speicher (Name ändert sich mit dem Inhalt)
+  if(url.pathname.includes('/bilder/')){
+    e.respondWith(caches.open('kochbuch-bilder').then(c => c.match(e.request).then(t => t || fetch(e.request).then(r => {
+      if(r.ok) c.put(e.request, r.clone());
+      return r;
+    }))));
     return;
   }
   e.respondWith(caches.match(e.request, {ignoreSearch: true}).then(t => t || fetch(e.request)));
