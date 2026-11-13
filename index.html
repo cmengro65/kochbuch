@@ -56,7 +56,8 @@ main{max-width:760px;margin:0 auto;padding:12px 16px 24px}
 .kacheln{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .kachel{background:var(--karte);border-radius:14px;padding:14px;box-shadow:var(--schatten);text-decoration:none;color:var(--text);
   display:flex;justify-content:space-between;align-items:center;gap:8px}
-.kachel b{font-weight:600}
+.kachel b{font-weight:600;min-width:0;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+.kachel span{flex-shrink:0}
 .kachel span{color:var(--leise);font-size:14px}
 .leer{color:var(--leise);text-align:center;padding:32px 8px}
 
@@ -191,7 +192,7 @@ label{display:block;font-size:14px;color:var(--leise);margin:10px 0 4px}
 
 <script>
 'use strict';
-const VERSION = '202611131343';
+const VERSION = '202611131408';
 const REPO = 'cmengro65/kochbuch';
 const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Typ'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
@@ -587,21 +588,21 @@ async function kochModus(r){
     const s = schritte[i] || '';
     const uhr = s.match(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(Min(?:\.|uten)?|Sek(?:\.|unden)?|Std(?:\.|unden)?)/i);
     let sek = 0;
-    if(uhr){ const n = +(uhr[2] || uhr[1]); sek = /^Std/i.test(uhr[3]) ? n*3600 : /^Sek/i.test(uhr[3]) ? n : n*60; }
+    if(uhr){ const n = +uhr[1]; /* bei Spannen wie „45–60 Min.“ die kürzere Zeit: lieber früher nachsehen */ sek = /^Std/i.test(uhr[3]) ? n*3600 : /^Sek/i.test(uhr[3]) ? n : n*60; }
     box.innerHTML = `<div class="oben"><b>${esc(r.titel)}</b>
         ${hatTM ? `<div class="umschalter" style="margin:0"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">Thermomix</button><button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
         <button class="knopf" id="kochZu">Fertig</button></div>
       <details style="margin-top:10px"><summary class="hinweis">Zutaten (${PORT[r.id] ?? r.portionen} Port.)</summary>
         <ul class="zutaten">${(r.zutaten||[]).map(z => { const zz = zutatZeile(z, (PORT[r.id] ?? r.portionen) / r.portionen); return `<li><span class="m">${esc(zz.m)}</span><span>${esc(zz.n)}</span></li>`; }).join('')}</ul></details>
       <div class="schritt"><div class="nr">Schritt ${i+1} von ${schritte.length}</div><div>${esc(s)}</div>
-        ${sek >= 60 ? `<div><button class="knopf uhr" id="uhrStart">⏱ ${esc(uhr[0])} – Wecker stellen</button></div>` : ''}</div>
+        ${sek > 0 ? `<div><button class="knopf uhr" id="uhrStart">⏱ ${esc(uhr[1] + ' ' + uhr[3])} – Wecker stellen</button></div>` : ''}</div>
       <div class="unten"><button class="knopf" id="zur" ${i === 0 ? 'disabled' : ''}>‹ Zurück</button>
         <button class="knopf haupt" id="vor" ${i >= schritte.length - 1 ? 'disabled' : ''}>Weiter ›</button></div>`;
     $('#kochZu').onclick = () => history.back();
     $('#zur').onclick = () => { i--; malen(); };
     $('#vor').onclick = () => { i++; malen(); };
     box.querySelectorAll('.umschalter button').forEach(b => b.onclick = () => { fassung = b.dataset.f; speicher.set('fassung', fassung); i = 0; malen(); });
-    if($('#uhrStart')) $('#uhrStart').onclick = () => wecker(sek, uhr[0]);
+    if($('#uhrStart')) $('#uhrStart').onclick = () => wecker(sek, uhr[1] + ' ' + uhr[3]);
   };
   kochTaste = e => { if(e.key === 'ArrowRight' && !$('#vor').disabled){ i++; malen(); } if(e.key === 'ArrowLeft' && !$('#zur').disabled){ i--; malen(); } };
   document.addEventListener('keydown', kochTaste);
@@ -767,6 +768,11 @@ function installHinweis(){
 
 // Beim Zurückkehren in die App nach neuen Rezepten schauen (Home-Bildschirm-Apps starten nicht neu)
 let zuletztGeprueft = Date.now();
+// Kochmodus: Das System gibt die Bildschirmsperre beim App-Wechsel frei – beim Zurückkommen neu anfordern
+document.addEventListener('visibilitychange', async () => {
+  if(document.hidden || $('#koch').hidden || !navigator.wakeLock) return;
+  if(!wachHalter || wachHalter.released){ try{ wachHalter = await navigator.wakeLock.request('screen'); }catch(e){} }
+});
 document.addEventListener('visibilitychange', async () => {
   if(document.hidden || !DATEN || !SCHL || Date.now() - zuletztGeprueft < 30000) return;
   zuletztGeprueft = Date.now();
