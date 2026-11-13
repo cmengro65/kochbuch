@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b5532d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kochbuch">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Kochbuch</title>
+<style>
+:root{
+  --bg:#fbf6ee; --karte:#ffffff; --text:#2b221c; --leise:#7a6a5d; --linie:#e8ddcf;
+  --akzent:#b5532d; --akzent-hell:#f6e3d8; --gruen:#4f7a4a; --warn:#a33a2a; --warn-hell:#fbe4df;
+  --schatten:0 1px 3px rgba(60,40,20,.08),0 4px 14px rgba(60,40,20,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#1d1916; --karte:#28221e; --text:#f1e9df; --leise:#b3a596; --linie:#3c342d;
+    --akzent:#e07a50; --akzent-hell:#3d2a20; --gruen:#8cb985; --warn:#f08a78; --warn-hell:#3f2420;
+    --schatten:0 1px 3px rgba(0,0,0,.3)}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;line-height:1.2}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--akzent)}
+[hidden]{display:none!important}
+
+#kopf{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--linie);
+  padding:calc(8px + env(safe-area-inset-top)) 16px 8px;display:flex;align-items:center;gap:8px;min-height:52px}
+#kopf h1{font-size:21px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#zurueck{background:none;border:0;color:var(--akzent);font-size:17px;padding:6px 8px 6px 0;cursor:pointer}
+main{max-width:760px;margin:0 auto;padding:12px 16px 24px}
+
+#leiste{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--karte);border-top:1px solid var(--linie);
+  display:flex;padding-bottom:env(safe-area-inset-bottom)}
+#leiste a{flex:1;text-align:center;text-decoration:none;color:var(--leise);font-size:12px;padding:8px 0 6px;position:relative}
+#leiste a .sym{display:block;font-size:22px;line-height:1.1}
+#leiste a.aktiv{color:var(--akzent);font-weight:600}
+.zahl{position:absolute;top:3px;left:calc(50% + 8px);background:var(--akzent);color:#fff;border-radius:9px;
+  font-size:11px;min-width:18px;padding:0 5px;line-height:18px;font-weight:600}
+
+.suche{width:100%;padding:11px 14px;border:1px solid var(--linie);border-radius:12px;background:var(--karte);font-size:17px}
+.reiter{display:flex;gap:6px;margin:14px 0 12px;overflow-x:auto;scrollbar-width:none}
+.reiter button{flex:1;border:1px solid var(--linie);background:var(--karte);border-radius:999px;padding:8px 12px;
+  white-space:nowrap;cursor:pointer;font-size:15px}
+.reiter button.aktiv{background:var(--akzent);border-color:var(--akzent);color:#fff;font-weight:600}
+.kacheln{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.kachel{background:var(--karte);border-radius:14px;padding:14px;box-shadow:var(--schatten);text-decoration:none;color:var(--text);
+  display:flex;justify-content:space-between;align-items:center;gap:8px}
+.kachel b{font-weight:600}
+.kachel span{color:var(--leise);font-size:14px}
+.leer{color:var(--leise);text-align:center;padding:32px 8px}
+
+.karten{display:flex;flex-direction:column;gap:10px}
+.rk{background:var(--karte);border-radius:14px;padding:14px 16px;box-shadow:var(--schatten);text-decoration:none;color:var(--text);display:block}
+.rk h3{margin:0 0 4px;font-size:19px}
+.rk p{margin:0;color:var(--leise);font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rk .unter{margin-top:6px;font-size:13px;color:var(--leise)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--akzent-hell);color:var(--text);text-decoration:none;white-space:nowrap}
+.chip.warn{background:var(--warn-hell);color:var(--warn)}
+.chip.gruen{background:transparent;border:1px solid var(--gruen);color:var(--gruen)}
+
+.rezept h2{font-size:28px;margin:6px 0 6px}
+.kurz{color:var(--leise);margin:0 0 8px;font-size:17px}
+.meta{font-size:14px;color:var(--leise);margin:4px 0}
+.abschnitt{background:var(--karte);border-radius:16px;padding:16px;margin:14px 0;box-shadow:var(--schatten)}
+.abschnitt h3{margin:0 0 10px;font-size:20px}
+.portionen{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.portionen button{width:40px;height:40px;border-radius:50%;border:1px solid var(--linie);background:var(--bg);font-size:22px;cursor:pointer;line-height:1}
+.portionen output{font-weight:600;font-size:18px;min-width:96px;text-align:center}
+.zutaten{list-style:none;margin:0;padding:0}
+.zutaten li{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--linie)}
+.zutaten li:last-child{border-bottom:0}
+.zutaten .m{flex:0 0 96px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.zutaten .h{color:var(--leise)}
+.gruppe{font-weight:600;color:var(--akzent);margin:12px 0 2px;font-size:15px}
+.schritte{margin:0;padding-left:24px}
+.schritte li{margin:0 0 12px;padding-left:4px}
+.anm{white-space:pre-wrap}
+.knoepfe{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.knopf{border:1px solid var(--linie);background:var(--karte);border-radius:12px;padding:11px 12px;cursor:pointer;text-align:center;
+  text-decoration:none;color:var(--text);font-size:15px}
+.knopf.haupt{background:var(--akzent);border-color:var(--akzent);color:#fff;font-weight:600}
+.knopf.breit{grid-column:1/-1}
+.knopf:disabled{opacity:.5}
+.umschalter{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:12px;border:1px solid var(--linie)}
+.umschalter button{flex:1;border:0;background:none;padding:7px;border-radius:8px;cursor:pointer;font-size:14px}
+.umschalter button.aktiv{background:var(--karte);box-shadow:var(--schatten);font-weight:600}
+
+.tb-eintrag{border-bottom:1px solid var(--linie);padding:8px 0}
+.tb-eintrag:last-child{border-bottom:0}
+.tb-kopf{display:flex;justify-content:space-between;font-size:14px;color:var(--leise)}
+.sterne{color:#d39a2c;letter-spacing:1px}
+.sternwahl button{background:none;border:0;font-size:30px;color:#d39a2c;cursor:pointer;padding:0 2px}
+textarea,input[type=text],input[type=password],input[type=date]{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:10px;background:var(--bg)}
+textarea{min-height:80px;resize:vertical}
+label{display:block;font-size:14px;color:var(--leise);margin:10px 0 4px}
+
+.ek-rezept{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie)}
+.ek-rezept:last-child{border-bottom:0}
+.ek-rezept a{flex:1;color:var(--text);text-decoration:none;font-weight:600}
+.ek-rezept .portionen{margin:0;gap:6px}
+.ek-rezept .portionen button{width:32px;height:32px;font-size:18px}
+.ek-rezept .portionen output{min-width:34px;font-size:16px}
+.weg{background:none;border:0;color:var(--leise);font-size:20px;cursor:pointer}
+.bereich{font-weight:600;color:var(--akzent);margin:14px 0 4px;font-size:15px}
+.bereich:first-child{margin-top:0}
+.posten{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer}
+.posten input{width:22px;height:22px;accent-color:var(--akzent)}
+.posten.hab span{text-decoration:line-through;color:var(--leise)}
+.hinweis{font-size:14px;color:var(--leise)}
+
+#anmeldung{max-width:420px;margin:12vh auto 0;padding:24px;text-align:center}
+#anmeldung img{width:88px;height:88px;border-radius:20px}
+#anmeldung h1{font-size:30px;margin:14px 0 6px}
+#anmeldung .fehler{color:var(--warn);min-height:24px;margin:8px 0}
+
+#koch{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;
+  padding:calc(12px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom))}
+#koch .oben{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#koch .oben b{font-family:Georgia,serif;font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#koch .schritt{flex:1;display:flex;flex-direction:column;justify-content:center;font-size:clamp(22px,5.5vw,34px);line-height:1.4;overflow:auto;padding:12px 0}
+#koch .nr{font-size:15px;color:var(--leise);margin-bottom:8px}
+#koch .unten{display:flex;gap:10px}
+#koch .unten .knopf{flex:1;padding:16px;font-size:18px}
+.uhr{display:inline-block;margin-top:14px;font-size:18px}
+#wecker{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;
+  background:var(--text);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:600;font-variant-numeric:tabular-nums;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}
+#wecker button{background:none;border:0;color:inherit;font-size:16px;cursor:pointer}
+#wecker.klingelt{background:var(--warn);color:#fff;animation:puls 1s infinite}
+@keyframes puls{50%{transform:translateX(-50%) scale(1.06)}}
+#meldung{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;
+  background:var(--text);color:var(--bg);border-radius:12px;padding:10px 16px;max-width:90vw;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#installieren{background:var(--akzent-hell);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
+#installieren button{background:none;border:0;font-size:18px;color:var(--leise);cursor:pointer;margin-left:auto}
+
+@media print{
+  #kopf,#leiste,.knoepfe,.umschalter,.portionen button,#tb-bereich,#installieren,#meldung,#wecker,.nicht-drucken{display:none!important}
+  body{background:#fff;color:#000;padding:0;font-size:12pt}
+  main{max-width:none;padding:0}
+  .abschnitt{box-shadow:none;border:0;padding:0;margin:12pt 0}
+  .chip{background:none;border:1px solid #999;color:#000}
+  .rezept h2{font-size:22pt}
+}
+</style>
+</head>
+<body>
+<div id="anmeldung" hidden>
+  <img src="icon-192.png" alt="">
+  <h1>Kochbuch</h1>
+  <p class="hinweis">Bitte das Familien-Passwort eingeben. Danach öffnet sich das Kochbuch auch ohne Internet.</p>
+  <form id="anmeldeForm">
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Passwort" aria-label="Passwort">
+    <div class="fehler" id="pwFehler"></div>
+    <button class="knopf haupt" style="width:100%">Öffnen</button>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header id="kopf">
+    <button id="zurueck" hidden aria-label="Zurück">‹ Zurück</button>
+    <h1 id="titel">Kochbuch</h1>
+  </header>
+  <main id="inhalt"></main>
+  <nav id="leiste">
+    <a href="#/" data-n="start"><span class="sym">📖</span>Kochbuch</a>
+    <a href="#/einkauf" data-n="einkauf"><span class="sym">🛒</span>Einkauf<span class="zahl" id="ekZahl" hidden></span></a>
+    <a href="#/mehr" data-n="mehr"><span class="sym">⚙︎</span>Mehr</a>
+  </nav>
+</div>
+<div id="koch" hidden></div>
+<div id="wecker" hidden></div>
+<div id="meldung" hidden></div>
+
+<script>
+'use strict';
+const VERSION = '202611130930';
+const REPO = 'cmengro65/kochbuch';
+const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Typ'};
+const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
+  'Gewürze & Öle','Asia & International','Tiefkühl','Getränke','Sonstiges'];
+const ZAEHLBAR = ['','stück','stk','zehe','zehen','bund','dose','dosen','packung','pck','päckchen','becher','glas','gläser',
+  'zweig','zweige','stange','stangen','knolle','kopf','köpfe','scheibe','scheiben','beutel','flasche','tüte'];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const speicher = {
+  get(k, d){ try{ const v = localStorage.getItem('kb.'+k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('kb.'+k, JSON.stringify(v)); }catch(e){} },
+  weg(k){ try{ localStorage.removeItem('kb.'+k); }catch(e){} }
+};
+const sortDe = (a, b) => a.localeCompare(b, 'de', {sensitivity:'base'});
+
+/* ---------- Verschlüsselung (AES-GCM, Schlüssel aus Passwort per PBKDF2) ---------- */
+function zuB64(buf){ const u = new Uint8Array(buf); let s = ''; for(let i=0;i<u.length;i+=0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i+0x8000)); return btoa(s); }
+function ausB64(s){ const b = atob(s); const u = new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i] = b.charCodeAt(i); return u; }
+async function schluesselAusPasswort(pw, salzB64, iter){
+  const basis = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name:'PBKDF2', hash:'SHA-256', salt:ausB64(salzB64), iterations:iter}, basis, 256);
+  return zuB64(bits);
+}
+async function aes(roh){ return crypto.subtle.importKey('raw', ausB64(roh), 'AES-GCM', false, ['encrypt','decrypt']); }
+async function entschluesseln(umschlag, roh){
+  const klar = await crypto.subtle.decrypt({name:'AES-GCM', iv:ausB64(umschlag.iv)}, await aes(roh), ausB64(umschlag.ct));
+  return JSON.parse(new TextDecoder().decode(klar));
+}
+async function verschluesseln(obj, roh, salz, iter){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, await aes(roh), new TextEncoder().encode(JSON.stringify(obj)));
+  return {v:1, salt:salz, iter, iv:zuB64(iv), ct:zuB64(ct)};
+}
+
+/* ---------- Zustand ---------- */
+let DATEN = null;          // {stand, rezepte:[...]}
+let TB = {eintraege:{}};   // Kochtagebuch
+let SCHL = speicher.get('schluessel', null); // {salt, iter, roh}
+let UMSCHLAG = null;
+const PORT = {};           // gewählte Portionen je Rezept (Sitzung)
+const rezeptVon = id => DATEN.rezepte.find(r => r.id === id);
+
+async function ladeUmschlag(datei){
+  try{
+    const r = await fetch(datei + '?t=' + Date.now(), {cache:'no-store'});
+    if(r.ok){ const j = await r.json(); speicher.set('cache.'+datei, j); return j; }
+    if(r.status === 404) return null;
+  }catch(e){}
+  return speicher.get('cache.'+datei, null);
+}
+
+async function start(){
+  UMSCHLAG = await ladeUmschlag('daten.enc');
+  if(!UMSCHLAG){ zeigeAnmeldung('Das Kochbuch konnte nicht geladen werden. Bitte einmal mit Internet öffnen.'); return; }
+  if(SCHL && SCHL.salt === UMSCHLAG.salt){
+    try{ DATEN = await entschluesseln(UMSCHLAG, SCHL.roh); }catch(e){ DATEN = null; }
+  }
+  if(!DATEN){ zeigeAnmeldung(SCHL ? 'Das Passwort hat sich geändert. Bitte neu eingeben.' : ''); return; }
+  await ladeTagebuch();
+  $('#anmeldung').hidden = true; $('#app').hidden = false;
+  zeigen();
+}
+
+function zeigeAnmeldung(text){
+  $('#app').hidden = true; $('#anmeldung').hidden = false;
+  $('#pwFehler').textContent = text || '';
+  setTimeout(() => $('#pw').focus(), 50);
+}
+$('#anmeldeForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if(!UMSCHLAG){ start(); return; }
+  $('#pwFehler').textContent = 'Einen Moment …';
+  try{
+    const roh = await schluesselAusPasswort($('#pw').value, UMSCHLAG.salt, UMSCHLAG.iter);
+    DATEN = await entschluesseln(UMSCHLAG, roh);
+    SCHL = {salt:UMSCHLAG.salt, iter:UMSCHLAG.iter, roh};
+    speicher.set('schluessel', SCHL);
+    $('#pw').value = '';
+    start();
+  }catch(err){ $('#pwFehler').textContent = 'Das Passwort stimmt nicht.'; }
+});
+
+async function ladeTagebuch(){
+  const u = await ladeUmschlag('tagebuch.enc');
+  // Ein frisch gespeicherter Eintrag kann auf der Webseite noch eine Minute fehlen – lokale Fassung gewinnt dann.
+  const lokal = speicher.get('tagebuchLokal', null);
+  try{ if(u) TB = await entschluesseln(u, SCHL.roh); }catch(e){}
+  if(lokal && (!TB.stand || lokal.stand > TB.stand)) TB = lokal;
+  TB.eintraege ||= {};
+}
+
+/* ---------- Mengen ---------- */
+function runde(x, e){
+  e = (e||'').toLowerCase();
+  if(['g','ml'].includes(e)){ if(x >= 100) return Math.round(x/5)*5; if(x >= 10) return Math.round(x); return Math.round(x*10)/10; }
+  if(['kg','l'].includes(e)) return Math.round(x*100)/100;
+  const q = Math.round(x*4)/4, t = Math.round(x*3)/3;
+  return Math.abs(t-x) < Math.abs(q-x) - 1e-9 ? t : q;
+}
+function zahl(x){
+  if(x >= 10 || Math.abs(x - Math.round(x)) < 0.01) return String(Math.round(x*100)/100).replace('.', ',');
+  const g = Math.floor(x + 1e-9), r = x - g;
+  const br = [[.25,'¼'],[.5,'½'],[.75,'¾'],[1/3,'⅓'],[2/3,'⅔']].find(([w]) => Math.abs(r-w) < .02);
+  if(br) return (g || '') + br[1];
+  return String(Math.round(x*100)/100).replace('.', ',');
+}
+function mengeText(m, einheit, faktor = 1){
+  if(m == null || m === '') return '';
+  let x = m * faktor, e = einheit || '';
+  if(e === 'kg'){ x *= 1000; e = 'g'; }
+  if(e === 'l'){ x *= 1000; e = 'ml'; }
+  if(e === 'g' && x >= 1000){ x /= 1000; e = 'kg'; }
+  if(e === 'ml' && x >= 1000){ x /= 1000; e = 'l'; }
+  x = runde(x, e);
+  if(x === 0) x = m * faktor;
+  return zahl(x) + (e ? ' ' + e : '');
+}
+function zutatZeile(z, faktor){
+  const m = mengeText(z.menge, z.einheit, faktor);
+  return {m: (z.geschaetzt && m ? '≈ ' : '') + m, n: z.name + (z.hinweis ? ', ' + z.hinweis : '')};
+}
+
+/* ---------- Navigation ---------- */
+window.addEventListener('hashchange', zeigen);
+$('#zurueck').addEventListener('click', () => history.length > 1 ? history.back() : (location.hash = '#/'));
+function kopf(titel, zurueck){
+  $('#titel').textContent = titel; $('#zurueck').hidden = !zurueck;
+  document.title = titel === 'Kochbuch' ? 'Kochbuch' : titel + ' · Kochbuch';
+}
+function leiste(n){
+  document.querySelectorAll('#leiste a').forEach(a => a.classList.toggle('aktiv', a.dataset.n === n));
+  const anz = speicher.get('einkauf', []).length;
+  $('#ekZahl').hidden = !anz; $('#ekZahl').textContent = anz;
+}
+function zeigen(){
+  if(!DATEN) return;
+  stopKoch();
+  const teile = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+  const main = $('#inhalt');
+  window.scrollTo(0, 0);
+  if(teile[0] === 'rezept' && rezeptVon(teile[1])) return seiteRezept(main, rezeptVon(teile[1]));
+  if(teile[0] === 'kochen' && rezeptVon(teile[1])) return kochModus(rezeptVon(teile[1]));
+  if(teile[0] === 'liste') return seiteListe(main, teile[1], teile[2]);
+  if(teile[0] === 'einkauf') return seiteEinkauf(main);
+  if(teile[0] === 'mehr') return seiteMehr(main);
+  seiteStart(main);
+}
+
+/* ---------- Startseite ---------- */
+function seiteStart(main){
+  kopf('Kochbuch', false); leiste('start');
+  const reiter = speicher.get('reiter', 'anlass');
+  const suche = sessionStorage.getItem('kb.suche') || '';
+  main.innerHTML = `
+    ${installHinweis()}
+    <input class="suche" id="suche" type="search" placeholder="Rezept, Zutat oder Stichwort suchen" value="${esc(suche)}" aria-label="Suche">
+    <div id="ergebnis"></div>`;
+  const zeichne = () => {
+    const q = $('#suche').value.trim();
+    sessionStorage.setItem('kb.suche', q);
+    $('#ergebnis').innerHTML = q ? karten(suchen(q), 'Nichts gefunden.') : verzeichnis(speicher.get('reiter','anlass'));
+    document.querySelectorAll('.reiter button').forEach(b => b.onclick = () => { speicher.set('reiter', b.dataset.r); zeichne(); });
+  };
+  $('#suche').addEventListener('input', zeichne);
+  zeichne();
+  const ih = $('#installieren button'); if(ih) ih.onclick = () => { speicher.set('installGesehen', true); $('#installieren').remove(); };
+}
+function verzeichnis(reiter){
+  const knoepfe = Object.entries({...GRUPPEN, alle:'Alle'}).map(([k, v]) =>
+    `<button data-r="${k}" class="${k === reiter ? 'aktiv' : ''}">${v}</button>`).join('');
+  let inhalt;
+  if(!DATEN.rezepte.length) inhalt = '<p class="leer">Noch keine Rezepte im Kochbuch.</p>';
+  else if(reiter === 'alle') inhalt = karten([...DATEN.rezepte].sort((a,b) => sortDe(a.titel, b.titel)));
+  else{
+    const zaehl = {};
+    DATEN.rezepte.forEach(r => (r[reiter] || []).forEach(t => zaehl[t] = (zaehl[t] || 0) + 1));
+    const tags = Object.keys(zaehl).sort(sortDe);
+    inhalt = tags.length ? `<div class="kacheln">${tags.map(t =>
+      `<a class="kachel" href="#/liste/${reiter}/${encodeURIComponent(t)}"><b>${esc(t)}</b><span>${zaehl[t]}</span></a>`).join('')}</div>`
+      : '<p class="leer">Hier ist noch nichts eingeordnet.</p>';
+  }
+  return `<div class="reiter">${knoepfe}</div>${inhalt}`;
+}
+function suchen(q){
+  const w = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return DATEN.rezepte.filter(r => {
+    const text = [r.titel, r.kurzbeschreibung, ...(r.anlass||[]), ...(r.hauptzutat||[]), ...(r.typ||[]), ...(r.saison||[]),
+      ...(r.zutaten||[]).map(z => z.name), r.anmerkungen].join(' ').toLowerCase();
+    return w.every(x => text.includes(x));
+  }).sort((a,b) => sortDe(a.titel, b.titel));
+}
+function sterneSchnitt(id){
+  const e = (TB.eintraege[id] || []).filter(x => x.sterne);
+  return e.length ? e.reduce((s,x) => s + x.sterne, 0) / e.length : 0;
+}
+function karten(liste, leer = 'Keine Rezepte.'){
+  if(!liste.length) return `<p class="leer">${leer}</p>`;
+  return `<div class="karten">${liste.map(r => {
+    const n = (TB.eintraege[r.id] || []).length, s = sterneSchnitt(r.id);
+    const unter = [ (r.typ||[]).join(' · '), n ? `${n}× gekocht` : '', s ? '★ ' + zahl(Math.round(s*2)/2) : '' ].filter(Boolean).join('  ·  ');
+    return `<a class="rk" href="#/rezept/${encodeURIComponent(r.id)}"><h3>${esc(r.titel)}</h3><p>${esc(r.kurzbeschreibung)}</p>
+      ${unter ? `<div class="unter">${esc(unter)}</div>` : ''}</a>`;
+  }).join('')}</div>`;
+}
+function seiteListe(main, gruppe, tag){
+  kopf(tag || 'Rezepte', true); leiste('start');
+  const liste = DATEN.rezepte.filter(r => (r[gruppe] || []).includes(tag)).sort((a,b) => sortDe(a.titel, b.titel));
+  main.innerHTML = `<p class="hinweis">${esc(GRUPPEN[gruppe] || '')}: ${liste.length} Rezept${liste.length === 1 ? '' : 'e'}</p>` + karten(liste);
+}
+
+/* ---------- Rezept ---------- */
+function seiteRezept(main, r){
+  kopf(r.titel, true); leiste('start');
+  const p = PORT[r.id] ?? r.portionen;
+  const f = p / r.portionen;
+  const hatTM = (r.thermomix || []).length > 0;
+  const fassung = hatTM && speicher.get('fassung', 'thermomix') === 'thermomix' ? 'thermomix' : 'klassisch';
+  const chipGr = g => (r[g] || []).map(t => `<a class="chip" href="#/liste/${g}/${encodeURIComponent(t)}">${esc(t)}</a>`).join('');
+  const original = r.variante_von && rezeptVon(r.variante_von);
+  const varianten = DATEN.rezepte.filter(x => x.variante_von === r.id);
+  const q = r.quelle || {};
+  const quelle = (Array.isArray(q) ? q : [q]).filter(x => x && (x.titel || x.url)).map(x =>
+    x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.titel || x.url)}</a>` : esc(x.titel)).join(' · ');
+
+  let zut = '', gruppe = null;
+  for(const z of r.zutaten || []){
+    if((z.gruppe || null) !== gruppe){ gruppe = z.gruppe || null; if(gruppe) zut += `</ul><div class="gruppe">${esc(gruppe)}</div><ul class="zutaten">`; }
+    const zz = zutatZeile(z, f);
+    zut += `<li><span class="m">${esc(zz.m)}</span><span>${esc(z.name)}${z.hinweis ? `<span class="h">, ${esc(z.hinweis)}</span>` : ''}</span></li>`;
+  }
+
+  main.innerHTML = `<article class="rezept">
+    <h2>${esc(r.titel)}</h2>
+    <p class="kurz">${esc(r.kurzbeschreibung)}</p>
+    <div class="chips">${chipGr('typ')}${chipGr('anlass')}${chipGr('hauptzutat')}
+      ${(r.saison||[]).map(s => `<span class="chip gruen">${esc(s)}</span>`).join('')}
+      ${(r.allergene||[]).map(a => `<span class="chip warn">enthält ${esc(a)}</span>`).join('')}</div>
+    ${r.zeit ? `<p class="meta">⏱ ${esc(r.zeit)}</p>` : ''}
+    ${original ? `<p class="meta">Variante von <a href="#/rezept/${encodeURIComponent(original.id)}">${esc(original.titel)}</a>${r.variante_art ? ' – ' + esc(r.variante_art) : ''}</p>` : ''}
+    ${varianten.length ? `<p class="meta">Varianten: ${varianten.map(v => `<a href="#/rezept/${encodeURIComponent(v.id)}">${esc(v.variante_art || v.titel)}</a>`).join(', ')}</p>` : ''}
+    ${r.zusammengefuehrt_aus ? `<p class="meta">Zusammengeführt aus: ${esc(r.zusammengefuehrt_aus.join(' + '))}</p>` : ''}
+
+    <div class="knoepfe">
+      <button class="knopf haupt breit" id="aufZettel">🛒 Auf den Einkaufszettel (${p} Port.)</button>
+      <a class="knopf" href="#/kochen/${encodeURIComponent(r.id)}">👩‍🍳 Kochmodus</a>
+      <button class="knopf" id="teilen">↗︎ Teilen</button>
+      <button class="knopf breit" id="drucken">🖨 Drucken / als PDF</button>
+    </div>
+
+    <section class="abschnitt">
+      <h3>Zutaten</h3>
+      <div class="portionen">
+        <button id="weniger" aria-label="Weniger Portionen">−</button>
+        <output>${p} Portion${p === 1 ? '' : 'en'}</output>
+        <button id="mehr" aria-label="Mehr Portionen">+</button>
+        ${p !== r.portionen ? `<button id="zurueckP" style="width:auto;border-radius:10px;padding:0 10px;font-size:13px">Original: ${r.portionen}</button>` : ''}
+      </div>
+      <ul class="zutaten">${zut}</ul>
+      ${(r.zutaten||[]).some(z => z.geschaetzt) ? '<p class="hinweis">≈ Menge geschätzt, in der Quelle nicht genau angegeben.</p>' : ''}
+    </section>
+
+    <section class="abschnitt">
+      <h3>Zubereitung</h3>
+      ${hatTM ? `<div class="umschalter"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">Meine Fassung (Thermomix)</button>
+        <button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
+      <ol class="schritte">${(fassung === 'thermomix' ? r.thermomix : r.zubereitung || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+    </section>
+
+    ${r.anmerkungen ? `<section class="abschnitt"><h3>Anmerkungen</h3><div class="anm">${esc(r.anmerkungen)}</div></section>` : ''}
+    ${quelle ? `<p class="meta">Quelle: ${quelle}</p>` : ''}
+
+    <section class="abschnitt" id="tb-bereich">
+      <h3>Kochtagebuch</h3>
+      <div id="tbListe">${tagebuchListe(r.id)}</div>
+      ${speicher.get('token', '') ? `<button class="knopf" style="width:100%;margin-top:10px" id="tbNeu">＋ Heute gekocht – Eintrag schreiben</button><div id="tbForm"></div>` : ''}
+    </section>
+  </article>`;
+
+  const setP = n => { PORT[r.id] = Math.max(1, n); seiteRezept(main, r); };
+  $('#weniger').onclick = () => setP(p - 1);
+  $('#mehr').onclick = () => setP(p + 1);
+  if($('#zurueckP')) $('#zurueckP').onclick = () => { delete PORT[r.id]; seiteRezept(main, r); };
+  document.querySelectorAll('.umschalter button').forEach(b => b.onclick = () => { speicher.set('fassung', b.dataset.f); seiteRezept(main, r); });
+  $('#aufZettel').onclick = () => {
+    const ek = speicher.get('einkauf', []);
+    const vorh = ek.find(x => x.id === r.id);
+    if(vorh) vorh.portionen = p; else ek.push({id:r.id, portionen:p});
+    speicher.set('einkauf', ek); leiste('start');
+    meldung(vorh ? `Auf dem Zettel jetzt mit ${p} Portionen.` : `„${r.titel}“ ist auf dem Einkaufszettel.`);
+  };
+  $('#teilen').onclick = () => teilen(r.titel, rezeptAlsText(r, p));
+  $('#drucken').onclick = () => window.print();
+  if($('#tbNeu')) $('#tbNeu').onclick = () => tagebuchFormular(r);
+}
+
+function rezeptAlsText(r, p){
+  const f = p / r.portionen;
+  const zeilen = [r.titel, '', r.kurzbeschreibung, '', `Zutaten für ${p} Portion${p === 1 ? '' : 'en'}:`];
+  let gruppe = null;
+  for(const z of r.zutaten || []){
+    if((z.gruppe||null) !== gruppe){ gruppe = z.gruppe || null; if(gruppe) zeilen.push('', gruppe + ':'); }
+    const zz = zutatZeile(z, f); zeilen.push('• ' + (zz.m ? zz.m + ' ' : '') + zz.n);
+  }
+  zeilen.push('', 'Zubereitung:', ...(r.zubereitung || []).map((s, i) => `${i+1}. ${s}`));
+  if((r.thermomix||[]).length) zeilen.push('', 'Mit dem Thermomix:', ...r.thermomix.map((s, i) => `${i+1}. ${s}`));
+  if(r.anmerkungen) zeilen.push('', 'Anmerkungen:', r.anmerkungen);
+  return zeilen.join('\n');
+}
+async function teilen(titel, text){
+  if(navigator.share){ try{ await navigator.share({title:titel, text}); return; }catch(e){ if(e.name === 'AbortError') return; } }
+  try{ await navigator.clipboard.writeText(text); meldung('In die Zwischenablage kopiert.'); }
+  catch(e){ meldung('Teilen ist hier nicht möglich.'); }
+}
+
+/* ---------- Kochtagebuch ---------- */
+const sterneText = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
+function tagebuchListe(id){
+  const e = [...(TB.eintraege[id] || [])].sort((a,b) => b.datum.localeCompare(a.datum));
+  if(!e.length) return '<p class="hinweis">Noch nicht gekocht – oder noch nicht eingetragen.</p>';
+  const darf = !!speicher.get('token', '');
+  return e.map(x => `<div class="tb-eintrag"><div class="tb-kopf"><span>${new Date(x.datum + 'T12:00').toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'})}</span>
+    <span class="sterne">${sterneText(x.sterne)}</span></div>${x.notiz ? `<div class="anm">${esc(x.notiz)}</div>` : ''}
+    ${darf ? `<button class="weg nicht-drucken" style="font-size:13px" data-weg="${esc(x.nr)}">Eintrag löschen</button>` : ''}</div>`).join('');
+}
+function tagebuchFormular(r){
+  let sterne = 0;
+  const heute = new Date().toISOString().slice(0, 10);
+  $('#tbNeu').hidden = true;
+  $('#tbForm').innerHTML = `<label>Datum</label><input type="date" id="tbDatum" value="${heute}">
+    <label>Wie war's?</label><div class="sternwahl">${[1,2,3,4,5].map(i => `<button data-s="${i}" aria-label="${i} Sterne">☆</button>`).join('')}</div>
+    <label>Notiz (z. B. „nächstes Mal weniger Chili“)</label><textarea id="tbNotiz"></textarea>
+    <div class="knoepfe"><button class="knopf" id="tbAbbr">Abbrechen</button><button class="knopf haupt" id="tbOk">Speichern</button></div>`;
+  const malen = () => document.querySelectorAll('.sternwahl button').forEach(b => b.textContent = +b.dataset.s <= sterne ? '★' : '☆');
+  document.querySelectorAll('.sternwahl button').forEach(b => b.onclick = () => { sterne = +b.dataset.s; malen(); });
+  $('#tbAbbr').onclick = () => { $('#tbForm').innerHTML = ''; $('#tbNeu').hidden = false; };
+  $('#tbOk').onclick = async () => {
+    $('#tbOk').disabled = true; $('#tbOk').textContent = 'Speichere …';
+    const eintrag = {nr: Date.now().toString(36), datum: $('#tbDatum').value || heute, sterne, notiz: $('#tbNotiz').value.trim()};
+    try{
+      await tagebuchAendern(tb => (tb.eintraege[r.id] ||= []).push(eintrag));
+      meldung('Im Kochtagebuch gespeichert.');
+      seiteRezept($('#inhalt'), r);
+    }catch(e){ $('#tbOk').disabled = false; $('#tbOk').textContent = 'Speichern'; meldung('Nicht gespeichert: ' + e.message, 6000); }
+  };
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-weg]'); if(!b) return;
+  if(!confirm('Diesen Tagebuch-Eintrag löschen?')) return;
+  const id = decodeURIComponent(location.hash.split('/')[2] || '');
+  try{
+    await tagebuchAendern(tb => { tb.eintraege[id] = (tb.eintraege[id] || []).filter(x => x.nr !== b.dataset.weg); });
+    seiteRezept($('#inhalt'), rezeptVon(id));
+  }catch(err){ meldung('Nicht gelöscht: ' + err.message, 6000); }
+});
+// Liest die aktuelle Fassung direkt bei GitHub, ändert sie und schreibt sie verschlüsselt zurück.
+async function tagebuchAendern(aenderung){
+  if(!navigator.onLine) throw new Error('kein Internet');
+  const api = `https://api.github.com/repos/${REPO}/contents/tagebuch.enc`;
+  const h = {Authorization: 'Bearer ' + speicher.get('token', ''), Accept: 'application/vnd.github+json'};
+  const r = await fetch(api, {headers: h, cache: 'no-store'});
+  let sha, tb = {eintraege:{}};
+  if(r.ok){ const j = await r.json(); sha = j.sha; tb = await entschluesseln(JSON.parse(atob(j.content.replace(/\s/g, ''))), SCHL.roh); }
+  else if(r.status === 401 || r.status === 403) throw new Error('der GitHub-Schlüssel gilt nicht (mehr)');
+  else if(r.status !== 404) throw new Error('GitHub antwortet mit ' + r.status);
+  tb.eintraege ||= {};
+  aenderung(tb);
+  tb.stand = new Date().toISOString();
+  const umschlag = await verschluesseln(tb, SCHL.roh, SCHL.salt, SCHL.iter);
+  const w = await fetch(api, {method:'PUT', headers:{...h, 'Content-Type':'application/json'},
+    body: JSON.stringify({message:'Kochtagebuch aktualisiert', content: btoa(JSON.stringify(umschlag)), ...(sha ? {sha} : {})})});
+  if(!w.ok) throw new Error(w.status === 409 ? 'gleichzeitige Änderung, bitte nochmal' : 'GitHub antwortet mit ' + w.status);
+  TB = tb; speicher.set('tagebuchLokal', tb); speicher.set('cache.tagebuch.enc', umschlag);
+}
+
+/* ---------- Kochmodus ---------- */
+let wachHalter = null, kochTaste = null;
+async function kochModus(r){
+  const hatTM = (r.thermomix || []).length > 0;
+  let fassung = hatTM && speicher.get('fassung', 'thermomix') === 'thermomix' ? 'thermomix' : 'klassisch';
+  let i = 0;
+  const box = $('#koch'); box.hidden = false;
+  try{ wachHalter = await navigator.wakeLock?.request('screen'); }catch(e){}
+  const malen = () => {
+    const schritte = fassung === 'thermomix' ? r.thermomix : r.zubereitung;
+    i = Math.min(i, schritte.length - 1);
+    const s = schritte[i] || '';
+    const uhr = s.match(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(Min(?:\.|uten)?|Sek(?:\.|unden)?|Std(?:\.|unden)?)/i);
+    let sek = 0;
+    if(uhr){ const n = +(uhr[2] || uhr[1]); sek = /^Std/i.test(uhr[3]) ? n*3600 : /^Sek/i.test(uhr[3]) ? n : n*60; }
+    box.innerHTML = `<div class="oben"><b>${esc(r.titel)}</b>
+        ${hatTM ? `<div class="umschalter" style="margin:0"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">TM</button><button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
+        <button class="knopf" id="kochZu">Fertig</button></div>
+      <details style="margin-top:10px"><summary class="hinweis">Zutaten (${PORT[r.id] ?? r.portionen} Port.)</summary>
+        <ul class="zutaten">${(r.zutaten||[]).map(z => { const zz = zutatZeile(z, (PORT[r.id] ?? r.portionen) / r.portionen); return `<li><span class="m">${esc(zz.m)}</span><span>${esc(zz.n)}</span></li>`; }).join('')}</ul></details>
+      <div class="schritt"><div class="nr">Schritt ${i+1} von ${schritte.length}</div><div>${esc(s)}</div>
+        ${sek >= 60 ? `<div><button class="knopf uhr" id="uhrStart">⏱ ${esc(uhr[0])} – Wecker stellen</button></div>` : ''}</div>
+      <div class="unten"><button class="knopf" id="zur" ${i === 0 ? 'disabled' : ''}>‹ Zurück</button>
+        <button class="knopf haupt" id="vor" ${i >= schritte.length - 1 ? 'disabled' : ''}>Weiter ›</button></div>`;
+    $('#kochZu').onclick = () => history.back();
+    $('#zur').onclick = () => { i--; malen(); };
+    $('#vor').onclick = () => { i++; malen(); };
+    box.querySelectorAll('.umschalter button').forEach(b => b.onclick = () => { fassung = b.dataset.f; speicher.set('fassung', fassung); i = 0; malen(); });
+    if($('#uhrStart')) $('#uhrStart').onclick = () => wecker(sek, uhr[0]);
+  };
+  kochTaste = e => { if(e.key === 'ArrowRight' && !$('#vor').disabled){ i++; malen(); } if(e.key === 'ArrowLeft' && !$('#zur').disabled){ i--; malen(); } };
+  document.addEventListener('keydown', kochTaste);
+  malen();
+}
+function stopKoch(){
+  $('#koch').hidden = true;
+  if(wachHalter){ wachHalter.release().catch(() => {}); wachHalter = null; }
+  if(kochTaste){ document.removeEventListener('keydown', kochTaste); kochTaste = null; }
+}
+let weckerZeit = null, weckerTakt = null, ton = null;
+function wecker(sek, text){
+  clearInterval(weckerTakt);
+  weckerZeit = Date.now() + sek * 1000;
+  const w = $('#wecker'); w.hidden = false; w.classList.remove('klingelt');
+  try{ ton = ton || new (window.AudioContext || window.webkitAudioContext)(); ton.resume(); }catch(e){}
+  const takt = () => {
+    const rest = Math.max(0, Math.round((weckerZeit - Date.now()) / 1000));
+    const mm = Math.floor(rest / 60), ss = String(rest % 60).padStart(2, '0');
+    w.innerHTML = `<span>⏱ ${mm}:${ss}</span><button id="weckerAus">✕</button>`;
+    $('#weckerAus').onclick = () => { clearInterval(weckerTakt); w.hidden = true; };
+    if(rest === 0){ w.classList.add('klingelt'); w.querySelector('span').textContent = '⏰ ' + text + ' sind um'; piep(); navigator.vibrate?.([400,200,400,200,400]); }
+  };
+  takt(); weckerTakt = setInterval(takt, 1000);
+}
+function piep(){
+  if(!ton) return;
+  for(let k = 0; k < 3; k++){ const o = ton.createOscillator(), g = ton.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ton.destination);
+    const t = ton.currentTime + k * .5; g.gain.setValueAtTime(.3, t); g.gain.exponentialRampToValueAtTime(.001, t + .35); o.start(t); o.stop(t + .4); }
+}
+
+/* ---------- Einkauf ---------- */
+function einkaufsPosten(){
+  const ek = speicher.get('einkauf', []);
+  const vorrat = speicher.get('vorratAn', false) ? speicher.get('vorrat', '').split('\n').map(s => s.trim().toLowerCase()).filter(Boolean) : [];
+  const basis = {kg:['g',1000], g:['g',1], l:['ml',1000], ml:['ml',1], cl:['ml',10], dl:['ml',100]};
+  const sammel = new Map();
+  for(const {id, portionen} of ek){
+    const r = rezeptVon(id); if(!r) continue;
+    const f = portionen / r.portionen;
+    for(const z of r.zutaten || []){
+      if(z.einkauf === false) continue;
+      const name = z.name.trim();
+      if(vorrat.includes(name.toLowerCase())) continue;
+      const e0 = (z.einheit || '').trim();
+      const [e, mal] = basis[e0.toLowerCase()] || [e0, 1];
+      const key = name.toLowerCase() + '|' + e.toLowerCase() + '|' + (z.menge == null ? 'x' : '');
+      const p = sammel.get(key) || {name, einheit:e, menge:null, bereich: z.bereich || 'Sonstiges', rezepte:new Set()};
+      if(z.menge != null) p.menge = (p.menge || 0) + z.menge * f * mal;
+      p.rezepte.add(r.titel);
+      sammel.set(key, p);
+    }
+  }
+  return [...sammel.values()].map(p => {
+    let text;
+    if(p.menge == null) text = p.name;
+    else if(ZAEHLBAR.includes(p.einheit.toLowerCase())) text = zahl(Math.ceil(p.menge - 1e-9)) + (p.einheit ? ' ' + p.einheit : '') + ' ' + p.name;
+    else text = mengeText(p.menge, p.einheit) + ' ' + p.name;
+    return {...p, text, schluessel: p.name.toLowerCase() + '|' + p.einheit};
+  });
+}
+function seiteEinkauf(main){
+  kopf('Einkaufszettel', false); leiste('einkauf');
+  const ek = speicher.get('einkauf', []);
+  if(!ek.length){
+    main.innerHTML = `<p class="leer">Der Einkaufszettel ist leer.<br>Öffne ein Rezept, stelle die Portionen ein und tippe auf „Auf den Einkaufszettel“.</p>`;
+    return;
+  }
+  const hab = new Set(speicher.get('habIch', []));
+  const posten = einkaufsPosten();
+  const nachBereich = {};
+  posten.forEach(p => (nachBereich[p.bereich] ||= []).push(p));
+  const reihenfolge = Object.keys(nachBereich).sort((a,b) => (BEREICHE.indexOf(a)+99) % 99 - (BEREICHE.indexOf(b)+99) % 99 || sortDe(a,b));
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  main.innerHTML = `
+    <section class="abschnitt"><h3>Rezepte</h3>
+      ${ek.map((x, k) => { const r = rezeptVon(x.id); return r ? `<div class="ek-rezept"><a href="#/rezept/${encodeURIComponent(r.id)}">${esc(r.titel)}</a>
+        <div class="portionen"><button data-k="${k}" data-d="-1">−</button><output>${x.portionen}</output><button data-k="${k}" data-d="1">+</button></div>
+        <button class="weg" data-raus="${k}" aria-label="Entfernen">✕</button></div>` : ''; }).join('')}
+    </section>
+    <section class="abschnitt"><h3>Zu kaufen</h3>
+      <p class="hinweis">Antippen, was schon im Haus ist – das wird nicht übertragen.</p>
+      ${reihenfolge.map(b => `<div class="bereich">${esc(b)}</div>` + nachBereich[b].map(p =>
+        `<label class="posten ${hab.has(p.schluessel) ? 'hab' : ''}"><input type="checkbox" data-s="${esc(p.schluessel)}" ${hab.has(p.schluessel) ? 'checked' : ''}>
+          <span>${esc(p.text)}</span></label>`).join('')).join('')}
+    </section>
+    <div class="knoepfe">
+      ${ios ? `<button class="knopf haupt breit" id="erinnerungen">In Erinnerungen übertragen</button>` : ''}
+      <button class="knopf ${ios ? '' : 'haupt breit'}" id="ekTeilen">↗︎ Als Text teilen</button>
+      <button class="knopf" id="ekLeeren">Zettel leeren</button>
+    </div>
+    ${ios ? `<p class="hinweis">„In Erinnerungen übertragen“ braucht einmalig den Kurzbefehl „Kochbuch Einkauf“ – Anleitung unter <a href="#/mehr">Mehr</a>.</p>` : ''}`;
+
+  main.querySelectorAll('[data-d]').forEach(b => b.onclick = () => {
+    const k = +b.dataset.k; ek[k].portionen = Math.max(1, ek[k].portionen + +b.dataset.d); speicher.set('einkauf', ek); seiteEinkauf(main);
+  });
+  main.querySelectorAll('[data-raus]').forEach(b => b.onclick = () => { ek.splice(+b.dataset.raus, 1); speicher.set('einkauf', ek); seiteEinkauf(main); });
+  main.querySelectorAll('.posten input').forEach(c => c.onchange = () => {
+    c.checked ? hab.add(c.dataset.s) : hab.delete(c.dataset.s); speicher.set('habIch', [...hab]);
+    c.closest('.posten').classList.toggle('hab', c.checked);
+  });
+  const liste = () => einkaufsPosten().filter(p => !hab.has(p.schluessel)).map(p => p.text);
+  if($('#erinnerungen')) $('#erinnerungen').onclick = () => {
+    const l = liste(); if(!l.length){ meldung('Nichts zu übertragen.'); return; }
+    location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent('Kochbuch Einkauf') + '&input=text&text=' + encodeURIComponent(l.join('\n'));
+  };
+  $('#ekTeilen').onclick = () => teilen('Einkaufsliste', liste().join('\n'));
+  $('#ekLeeren').onclick = () => { if(confirm('Einkaufszettel leeren?')){ speicher.set('einkauf', []); speicher.set('habIch', []); seiteEinkauf(main); } };
+}
+
+/* ---------- Mehr / Einstellungen ---------- */
+function seiteMehr(main){
+  kopf('Mehr', false); leiste('mehr');
+  const token = speicher.get('token', '');
+  main.innerHTML = `
+    <section class="abschnitt"><h3>Vorrat</h3>
+      <label class="posten"><input type="checkbox" id="vorratAn" ${speicher.get('vorratAn', false) ? 'checked' : ''}><span>Vorrat beim Einkaufszettel abziehen</span></label>
+      <div id="vorratFeld" ${speicher.get('vorratAn', false) ? '' : 'hidden'}>
+        <label>Was immer da ist – eine Zutat pro Zeile, so geschrieben wie im Rezept</label>
+        <textarea id="vorrat" rows="5" placeholder="Salz&#10;Pfeffer">${esc(speicher.get('vorrat', ''))}</textarea></div>
+    </section>
+    <section class="abschnitt"><h3>Kurzbefehl für Erinnerungen (iPhone)</h3>
+      <p class="hinweis">Einmalig in der App <b>Kurzbefehle</b> anlegen:</p>
+      <ol class="hinweis" style="padding-left:20px">
+        <li>„+“ tippen, den Kurzbefehl <b>Kochbuch Einkauf</b> nennen (genau so geschrieben).</li>
+        <li>Aktion <b>Text teilen</b> hinzufügen, bei „Text“ die <b>Kurzbefehleingabe</b> wählen, Trennzeichen <b>Neue Zeilen</b>.</li>
+        <li>Aktion <b>Wiederholen mit jedem</b> hinzufügen (für die geteilten Textteile).</li>
+        <li>Darin die Aktion <b>Erinnerung hinzufügen</b>: Text = <b>Wiederholungsobjekt</b>, Liste = <b>Family</b>.</li>
+        <li>In den Details des Kurzbefehls einstellen: empfängt <b>Text</b>.</li>
+      </ol>
+      <p class="hinweis">Danach überträgt „In Erinnerungen übertragen“ jede Zeile als eigene Erinnerung.</p>
+    </section>
+    <section class="abschnitt"><h3>Bearbeiten (nur Christian)</h3>
+      <p class="hinweis">Mit dem GitHub-Schlüssel kannst du Einträge ins Kochtagebuch schreiben. Er bleibt nur auf diesem Gerät.</p>
+      <input type="password" id="token" placeholder="GitHub-Schlüssel" value="${esc(token)}" autocomplete="off" aria-label="GitHub-Schlüssel">
+      <div class="knoepfe"><button class="knopf haupt" id="tokenOk">Speichern</button><button class="knopf" id="tokenWeg">Entfernen</button></div>
+    </section>
+    <section class="abschnitt"><h3>Über</h3>
+      <p class="hinweis">${DATEN.rezepte.length} Rezepte · Stand ${esc(new Date(DATEN.stand).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'}))} · App ${esc(VERSION)}</p>
+      <div class="knoepfe"><button class="knopf" id="neuLaden">Neu laden</button><button class="knopf" id="abmelden">Abmelden</button></div>
+    </section>`;
+  $('#vorratAn').onchange = e => { speicher.set('vorratAn', e.target.checked); $('#vorratFeld').hidden = !e.target.checked; };
+  $('#vorrat').oninput = e => speicher.set('vorrat', e.target.value);
+  $('#tokenOk').onclick = () => { speicher.set('token', $('#token').value.trim()); meldung('Gespeichert.'); };
+  $('#tokenWeg').onclick = () => { speicher.weg('token'); $('#token').value = ''; meldung('Entfernt.'); };
+  $('#neuLaden').onclick = () => location.reload();
+  $('#abmelden').onclick = () => { if(confirm('Abmelden? Danach ist das Passwort nötig.')){ speicher.weg('schluessel'); location.hash = ''; location.reload(); } };
+}
+
+/* ---------- Kleinkram ---------- */
+let meldungTakt;
+function meldung(text, ms = 2500){
+  const m = $('#meldung'); m.textContent = text; m.hidden = false;
+  clearTimeout(meldungTakt); meldungTakt = setTimeout(() => m.hidden = true, ms);
+}
+function installHinweis(){
+  const app = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if(app || speicher.get('installGesehen', false)) return '';
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  return `<div id="installieren"><span>📲 ${ios ? 'Als App ablegen: unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.'
+    : 'Als App ablegen: im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> wählen.'}</span><button aria-label="Schließen">✕</button></div>`;
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+start();
+</script>
+</body>
+</html>
