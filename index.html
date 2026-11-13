@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#b5532d">
+<meta name="theme-color" content="#e9efeb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1513" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kochbuch">
@@ -12,194 +13,574 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
+<link rel="preload" href="atkinson-next-v7-latin.woff2" as="font" type="font/woff2" crossorigin>
 <title>Kochbuch</title>
+<!-- Gestaltung „Kräutergarten“ (gestaltung/08-kraeutergarten.md).
+     Symbole: Lucide 0.577, ISC-Lizenz, https://lucide.dev
+     Schriften: Vollkorn und Atkinson Hyperlegible Next, SIL Open Font License 1.1 (OFL-*.txt) -->
 <style>
+/* =====================================================================
+   Kochbuch – Stilrichtung „Kräutergarten“ (Entwurf 13.11.2026)
+   Grundlage für den Umbau von app/index.html.
+   Farben: Palette A (gestaltung/03-farbe.md), ergänzt um Lavendel (Thermomix)
+   und Senf (Wecker). Jede Farbe hat genau eine Bedeutung:
+     Tannengrün  --akzent  = Handlung (Hauptknopf, aktiver Reiter, Zähler, Haken)
+     Lavendel    --tm      = Thermomix (Umschalter, Gerätanzeige, Werte im Text)
+     Senf        --zeit    = Wecker (starten und laufend)
+     Oliv        --gruen   = Saison
+     Ziegelrot   --warn    = Allergene, Löschen, Fehler
+   Schrift: Atkinson Hyperlegible Next (Überschriften und Text) + Vollkorn (nur Mengen und Zahlen),
+   beide SIL OFL 1.1, lokal als woff2. Größen/Abstände: Utopia (02-schrift.md).
+   Symbole: Lucide 0.577 (ISC), inline SVG, Strich 2.
+   ===================================================================== */
+
+/* ---------- Schriften ---------- */
+@font-face{font-family:'Vollkorn';font-style:normal;font-weight:400 900;font-display:swap;
+  src:url(vollkorn-v30-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Vollkorn';font-style:normal;font-weight:400 900;font-display:swap;
+  src:url(vollkorn-v30-latinext.woff2) format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Atkinson Hyperlegible Next';font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(atkinson-next-v7-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Atkinson Hyperlegible Next';font-style:normal;font-weight:200 800;font-display:swap;
+  src:url(atkinson-next-v7-latinext.woff2) format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+
+/* ---------- Grundwerte ---------- */
 :root{
-  --bg:#fbf6ee; --karte:#ffffff; --text:#2b221c; --leise:#7a6a5d; --linie:#e8ddcf;
-  --akzent:#b5532d; --akzent-hell:#f6e3d8; --gruen:#4f7a4a; --warn:#a33a2a; --warn-hell:#fbe4df;
-  --schatten:0 1px 3px rgba(60,40,20,.08),0 4px 14px rgba(60,40,20,.06);
+  color-scheme:light dark;
+  /* Farben hell – vorhandene Variablen der App */
+  --bg:#e9efeb;          /* Salbeigrau, Seite */
+  --karte:#ffffff;       /* Felder, Leiste, Flächen */
+  --text:#18211d;
+  --leise:#56615c;       /* Nebentext, ≥ 5,6 : 1 auf --bg */
+  --linie:#cfdad3;
+  --akzent:#1f6a4a;      /* Tannengrün = Handlung */
+  --akzent-hell:#dcebe2;
+  --gruen:#4d6b16;       /* Oliv = Saison */
+  --warn:#a8321f;        /* Ziegel = Allergene, Löschen */
+  --warn-hell:#fbe7e2;
+  --schatten:0 1px 2px rgba(20,40,30,.07),0 4px 14px rgba(20,40,30,.05);
+  /* neu */
+  --aufakzent:#ffffff;   /* Schrift auf --akzent */
+  --stern:#18211d;       /* Sterne in Tinte, nicht gelb (Gelb gehört dem Wecker) */
+  /* neu: Thermomix (Lavendel) */
+  --tm:#5b3f86;  --tm-hell:#ebe5f3;  --tm-tief:#2b2338;  --tm-text:#ffffff;  --tm-linie:rgba(255,255,255,.2);
+  /* neu: Wecker (Senf) */
+  --zeit:#7a5200; --zeit-hell:#f5e6bd; --zeit-tief:#3a2700; --zeit-rand:#d9b45a;
+
+  /* Schriftrollen */
+  --f-head:'Atkinson Hyperlegible Next',system-ui,sans-serif;  /* Entscheidung: nicht Vollkorn, siehe 08-kraeutergarten.md */
+  --f-text:'Atkinson Hyperlegible Next',system-ui,sans-serif;
+  --f-num:'Vollkorn',Georgia,serif;
+
+  /* Utopia: 320→1240 px, 18→20 px, 1,2→1,25 */
+  --step-n2:clamp(0.7813rem,0.7747rem + 0.0326vi,0.8rem);
+  --step-n1:clamp(0.9375rem,0.9158rem + 0.1087vi,1rem);
+  --step-0:clamp(1.125rem,1.0815rem + 0.2174vi,1.25rem);
+  --step-1:clamp(1.35rem,1.2761rem + 0.3696vi,1.5625rem);
+  --step-2:clamp(1.62rem,1.5041rem + 0.5793vi,1.9531rem);
+  --step-3:clamp(1.944rem,1.771rem + 0.8651vi,2.4414rem);
+  --step-4:clamp(2.3328rem,2.0827rem + 1.2504vi,3.0518rem);
+  --step-5:clamp(2.7994rem,2.4462rem + 1.7658vi,3.8147rem);
+  --space-3xs:clamp(0.2813rem,0.2704rem + 0.0543vi,0.3125rem);
+  --space-2xs:clamp(0.5625rem,0.5408rem + 0.1087vi,0.625rem);
+  --space-xs:clamp(0.8438rem,0.8111rem + 0.163vi,0.9375rem);
+  --space-s:clamp(1.125rem,1.0815rem + 0.2174vi,1.25rem);
+  --space-m:clamp(1.6875rem,1.6223rem + 0.3261vi,1.875rem);
+  --space-l:clamp(2.25rem,2.163rem + 0.4348vi,2.5rem);
+  --space-xl:clamp(3.375rem,3.2446rem + 0.6522vi,3.75rem);
+  --space-2xl:clamp(4.5rem,4.3261rem + 0.8696vi,5rem);
+  --space-s-m:clamp(1.125rem,0.8641rem + 1.3043vi,1.875rem);
+  --space-m-l:clamp(1.6875rem,1.4049rem + 1.413vi,2.5rem);
+
+  /* Formen: Rangfolge statt ein Radius für alles */
+  --r-foto:6px; --r-feld:10px; --r-anzeige:16px; --r-rund:999px;
+  --rand:var(--space-s);           /* Seitenrand */
+  --spalte:42rem;                  /* Textspalte max. */
+  --leiste-h:64px;
 }
-@media (prefers-color-scheme: dark){
-  :root{--bg:#1d1916; --karte:#28221e; --text:#f1e9df; --leise:#b3a596; --linie:#3c342d;
-    --akzent:#e07a50; --akzent-hell:#3d2a20; --gruen:#8cb985; --warn:#f08a78; --warn-hell:#3f2420;
-    --schatten:0 1px 3px rgba(0,0,0,.3)}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1513; --karte:#18211d; --text:#e8eeea; --leise:#a3b0aa; --linie:#2c3632;
+    --akzent:#6fbf96; --akzent-hell:#173126; --gruen:#b5d47a; --warn:#ff9b86; --warn-hell:#3a1d18;
+    --schatten:none;
+    --aufakzent:#0c2118; --stern:#e8eeea;
+    --tm:#c6b3ec; --tm-hell:#272035; --tm-tief:#211b2c; --tm-text:#1b1328; --tm-linie:rgba(255,255,255,.14);
+    --zeit:#f0c56a; --zeit-hell:#33270c; --zeit-tief:#f6dc9c; --zeit-rand:#6b5216;
+  }
 }
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);
-  font:17px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  padding-bottom:calc(68px + env(safe-area-inset-bottom))}
-h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-weight:600;line-height:1.2}
-button,input,textarea,select{font:inherit;color:inherit}
-a{color:var(--akzent)}
+
+/* ---------- Grundlage ---------- */
+*,*::before,*::after{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--f-text);font-size:var(--step-0);line-height:1.5;
+  -webkit-font-smoothing:antialiased;font-optical-sizing:auto}
+img{display:block;max-width:100%}
+button,input,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--akzent);outline-offset:2px;border-radius:4px}
+.i{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.i.klein{width:20px;height:20px}
+.bruch{font-variant-numeric:diagonal-fractions}
+.nb{white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+h1,h2,h3{font-family:var(--f-head);font-weight:800;line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
+.seite{max-width:var(--spalte);margin:0 auto;padding:0 var(--rand) calc(var(--leiste-h) + var(--space-l) + env(safe-area-inset-bottom))}
+.vollbreit{margin-inline:calc(-1 * var(--rand))}
+
+/* ---------- Kopfzeile ---------- */
+.kopf{display:flex;align-items:center;gap:var(--space-2xs);min-height:60px;padding-top:env(safe-area-inset-top)}
+.kopf h1{font-size:var(--step-3);font-weight:800;letter-spacing:-.03em}
+.kopf .zurueck{display:flex;align-items:center;gap:2px;height:48px;margin-left:-10px;padding-right:12px;font-weight:600;color:var(--text)}
+.kopf .rechts{margin-left:auto;color:var(--leise);font-size:var(--step-n1)}
+
+/* ---------- Leiste unten (Form wie heute: drei Ziele) ---------- */
+.leiste{position:fixed;inset:auto 0 0 0;z-index:5;display:grid;grid-template-columns:repeat(3,1fr);
+  background:var(--karte);border-top:1px solid var(--linie);padding-bottom:env(safe-area-inset-bottom)}
+.leiste a{position:relative;height:var(--leiste-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:var(--step-n2);font-weight:600;color:var(--leise)}
+.leiste a[aria-current=page]{color:var(--akzent)}
+.leiste a[aria-current=page]::before{content:"";position:absolute;top:-1px;left:30%;right:30%;height:3px;border-radius:0 0 3px 3px;background:var(--akzent)}
+.leiste .zaehler{position:absolute;top:8px;left:calc(50% + 6px);min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-rund);
+  background:var(--akzent);color:var(--aufakzent);font-size:12px;font-weight:800;display:grid;place-items:center;border:2px solid var(--karte)}
+
+/* ---------- Felder und Knöpfe ---------- */
+.feld{display:flex;align-items:center;gap:var(--space-2xs);height:52px;padding:0 14px;background:var(--karte);
+  border:1px solid var(--linie);border-radius:var(--r-feld)}
+.feld input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:var(--step-0)}
+.feld input::placeholder{color:var(--leise)}
+.feld .i{color:var(--leise)}
+.feld:focus-within{border-color:var(--akzent);box-shadow:0 0 0 1px var(--akzent)}
+.feld .feldknopf{width:44px;height:44px;margin-right:-10px;display:grid;place-items:center;color:var(--leise)}
+
+.knopf{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 20px;border-radius:var(--r-feld);
+  font-weight:700;font-size:var(--step-0);line-height:1.2;text-align:center}
+.knopf.haupt{background:var(--akzent);color:var(--aufakzent)}
+.knopf.neben{background:var(--karte);border:1px solid var(--linie);color:var(--text)}
+.knopf.leise{min-height:48px;padding:0 10px;font-weight:600;color:var(--leise)}
+.knopf.warn{color:var(--warn)}
+.knopf.voll{width:100%}
+.knoepfe{display:flex;gap:var(--space-2xs);flex-wrap:wrap}
+.knoepfe > *{flex:1}
+
+/* ---------- Abschnitte (offen, ohne Kasten) ---------- */
+.abschnitt{padding-top:var(--space-l)}
+.abschnitt > h2{font-size:var(--step-2);margin-bottom:var(--space-xs)}
+.abschnitt-kopf{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-xs);margin-bottom:var(--space-xs)}
+.abschnitt-kopf h2{font-size:var(--step-2)}
+.hinweis{color:var(--leise);font-size:var(--step-n1);line-height:1.45}
+.trenner{border:0;border-top:1px solid var(--linie);margin:0}
+
+/* ---------- Startseite ---------- */
+.suche{margin-top:var(--space-3xs)}
+.filter{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:var(--space-xs) var(--rand);margin-inline:calc(-1 * var(--rand))}
+.filter::-webkit-scrollbar{display:none}
+.filter button{flex:none;height:44px;padding:0 16px;display:flex;align-items:center;gap:6px;border-radius:var(--r-feld);
+  background:var(--karte);border:1px solid var(--linie);font-weight:600;font-size:var(--step-n1);white-space:nowrap}
+.filter button[aria-pressed=true]{background:var(--akzent);border-color:var(--akzent);color:var(--aufakzent)}
+.filter button small{font-size:inherit;font-weight:500;opacity:.8}
+
+.saison{display:block;margin-top:var(--space-2xs)}
+.saison img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.saison .unter{padding:var(--space-xs) 0 0}
+.saison .zeile{display:flex;align-items:center;gap:6px;color:var(--gruen);font-weight:600;font-size:var(--step-n1)}
+.saison h2{font-size:var(--step-3);margin-top:4px}
+
+.raster-kopf{display:flex;align-items:baseline;justify-content:space-between;margin:var(--space-xl) 0 var(--space-xs)}
+.raster-kopf h2{font-size:var(--step-2)}
+.raster-kopf span{color:var(--leise);font-size:var(--step-n1)}
+.raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-m) var(--space-xs);list-style:none;padding:0}
+.kachel img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:var(--r-foto);background:var(--linie)}
+.kachel b{display:block;margin-top:var(--space-2xs);font-family:var(--f-head);font-weight:700;font-size:var(--step-0);line-height:1.2;letter-spacing:-.01em;
+  hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.kachel span{display:flex;align-items:center;gap:6px;margin-top:3px;color:var(--leise);font-size:var(--step-n1)}
+.kachel .tm{display:inline-flex;color:var(--tm)}
+.kachel .tm .i{width:18px;height:18px}
+
+/* Leerer Zustand */
+.leer{padding:var(--space-xl) 0 var(--space-l);max-width:30rem}
+.leer .gross{width:56px;height:56px;color:var(--leise);stroke-width:1.6}
+.leer h2{font-size:var(--step-3);margin:var(--space-s) 0 var(--space-2xs)}
+.leer p{color:var(--leise)}
+.leer .vorschlaege{display:flex;flex-wrap:wrap;gap:8px;margin:var(--space-s) 0 var(--space-m)}
+.leer .vorschlaege button{height:44px;padding:0 14px;border-radius:var(--r-feld);background:var(--karte);border:1px solid var(--linie);font-weight:600;font-size:var(--step-n1)}
+.leer .vorschlaege button small{color:var(--leise);font-weight:500;font-size:inherit;margin-left:4px}
+
+/* ---------- Rezept ---------- */
+.foto{width:100%;aspect-ratio:4/3;object-fit:cover}
+.titel{font-size:var(--step-4);font-weight:800;line-height:1.02;letter-spacing:-.035em;margin-top:var(--space-s);hyphens:auto}
+.kurz{font-size:var(--step-0);line-height:1.45;color:var(--leise);margin-top:var(--space-2xs)}
+.fakten{list-style:none;padding:0;margin:var(--space-xs) 0 0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:var(--step-n1)}
+.fakten li{display:flex;align-items:flex-start;gap:7px;line-height:1.4}
+.fakten .i{width:20px;height:20px;margin-top:1px}
+.fakten .tm{color:var(--tm);font-weight:650}
+.fakten .saison-f{color:var(--gruen)}
+.fakten .allergen{color:var(--warn);font-weight:650}
+.fakten .leise{color:var(--leise)}
+.handlungen{display:grid;gap:var(--space-2xs);margin-top:var(--space-s)}
+.handlungen .klein{display:flex;justify-content:center;gap:var(--space-s)}
+
+.portionen{display:flex;align-items:center;gap:2px;background:var(--karte);border:1px solid var(--linie);border-radius:var(--r-feld);padding:3px}
+.portionen button{width:44px;height:44px;display:grid;place-items:center;border-radius:8px;color:var(--akzent)}
+.portionen output{min-width:2.6em;text-align:center;font-family:var(--f-num);font-weight:700;font-size:var(--step-1);line-height:1;font-variant-numeric:lining-nums tabular-nums}
+.portionen output small{display:block;font-family:var(--f-text);font-size:12px;font-weight:600;color:var(--leise);margin-top:2px}
+.umgerechnet{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--step-n1);color:var(--leise);margin:-4px 0 var(--space-2xs)}
+.umgerechnet button{color:var(--akzent);font-weight:700;min-height:44px}
+
+.zutaten{list-style:none;padding:0;border-top:1px solid var(--linie)}
+.zutaten li{display:grid;grid-template-columns:5.6rem 1fr;gap:var(--space-xs);padding:11px 0;border-bottom:1px solid var(--linie);align-items:baseline}
+.zutaten .m{text-align:right;font-family:var(--f-num);font-weight:700;font-size:var(--step-0);font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
+.zutaten .m small{font-family:var(--f-num);font-weight:500;font-size:inherit}
+.zutaten .n{line-height:1.35}
+.zutaten .n em{display:block;font-style:normal;color:var(--leise);font-size:var(--step-n1)}
+
+.fassung{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--karte);border:1px solid var(--linie);border-radius:14px}
+.fassung button{height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;color:var(--leise);font-size:var(--step-n1)}
+.fassung button[data-f=thermomix][aria-pressed=true]{background:var(--tm);color:var(--tm-text)}
+.fassung button[data-f=klassisch][aria-pressed=true]{background:var(--text);color:var(--bg)}
+.fassung.klein button{height:46px}
+
+.schritte{list-style:none;padding:0;margin-top:var(--space-s);counter-reset:s}
+.schritte li{display:grid;grid-template-columns:2.2rem 1fr;gap:var(--space-xs);padding:var(--space-xs) 0 var(--space-s)}
+.schritte li + li{border-top:1px solid var(--linie);padding-top:var(--space-s)}
+.schritte .nr{font-family:var(--f-num);font-weight:700;font-size:var(--step-3);line-height:.9;color:var(--leise);font-variant-numeric:lining-nums}
+.schritte p{line-height:1.55}
+.tmwert{background:var(--tm-hell);color:var(--tm);font-weight:700;border-radius:5px;padding:1px 6px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+.anm p + p{margin-top:var(--space-2xs)}
+.quelle{margin-top:var(--space-s);color:var(--leise);font-size:var(--step-n1)}
+.tb{list-style:none;padding:0;border-top:1px solid var(--linie)}
+.tb li{padding:var(--space-xs) 0;border-bottom:1px solid var(--linie)}
+.tb .tb-kopf{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700}
+.sterne{display:inline-flex;gap:2px;color:var(--stern)}
+.sterne .i{width:18px;height:18px}
+.sterne .voll{fill:currentColor}
+.sterne .aus{opacity:.35}
+.tb p{margin-top:4px}
+
+/* ---------- Kochmodus ---------- */
+.koch{min-height:100dvh;display:flex;flex-direction:column;max-width:var(--spalte);margin:0 auto;
+  padding:env(safe-area-inset-top) var(--rand) 0}
+.koch-kopf{display:flex;align-items:center;gap:var(--space-2xs);min-height:58px}
+.koch-kopf .zu{width:48px;height:48px;display:grid;place-items:center;margin-left:-12px;border-radius:12px}
+.koch-kopf div{flex:1;min-width:0;line-height:1.15}
+.koch-kopf b{display:block;font-family:var(--f-head);font-weight:800;font-size:var(--step-0);line-height:1.15;letter-spacing:-.01em}
+.koch-kopf span{font-size:var(--step-n1);color:var(--leise)}
+.fortschritt{display:flex;align-items:center;gap:var(--space-xs);margin:var(--space-2xs) 0 var(--space-xs)}
+.fortschritt ol{flex:1;display:flex;gap:5px;list-style:none;padding:0}
+.fortschritt li{flex:1;height:8px;border-radius:4px;background:var(--linie)}
+.fortschritt li.fertig{background:var(--leise)}
+.fortschritt li.jetzt{background:var(--text)}
+.fortschritt span{font-size:var(--step-n1);color:var(--leise);white-space:nowrap}
+.fortschritt span b{color:var(--text);font-family:var(--f-num);font-size:var(--step-1);font-variant-numeric:lining-nums}
+
+.anzeige{background:var(--tm-tief);color:#fff;border-radius:var(--r-anzeige);padding:var(--space-xs) var(--space-s) var(--space-xs)}
+@media (prefers-color-scheme:dark){.anzeige{border:1px solid #3d3352;color:#f1ecfa}}
+.anzeige .kennung{display:flex;align-items:center;gap:8px;font-size:var(--step-n1);font-weight:600;color:#cdbdf0;margin-bottom:var(--space-xs)}
+.werte{display:grid;grid-template-columns:1.1fr 1.15fr .9fr}
+.wert small{display:block;font-size:var(--step-n1);opacity:.8}
+.wert strong{display:block;font-size:2.75rem;font-weight:800;line-height:1;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:lining-nums}
+.wert em{display:block;font-style:normal;font-size:var(--step-n1);font-weight:600;margin-top:4px;opacity:.9}
+.wert + .wert{border-left:1px solid var(--tm-linie);padding-left:var(--space-xs)}
+.wert svg.ruehr{width:58px;height:50px;margin-top:4px}
+.lauf{display:flex;align-items:center;gap:10px;margin-top:var(--space-xs);padding-top:var(--space-xs);border-top:1px solid var(--tm-linie);font-weight:700}
+.wecker-start{margin-top:var(--space-xs);width:100%;min-height:52px;border-radius:12px;background:var(--zeit-hell);color:var(--zeit-tief);
+  font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;font-size:var(--step-0)}
+
+.koch-text{font-size:var(--step-2);line-height:1.3;margin:var(--space-s) 0 var(--space-xs);font-weight:400;letter-spacing:-.005em}
+.koch-text b{font-weight:800}
+.koch-text.gross{font-size:clamp(1.62rem,1.3rem + 1.4vi,2.2rem)}
+.nebenkopf{font-family:var(--f-text);letter-spacing:0;font-size:var(--step-n1);font-weight:700;color:var(--leise);margin:var(--space-xs) 0 var(--space-2xs)}
+.dazu{list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.dazu li{background:var(--karte);border:1px solid var(--linie);border-radius:var(--r-feld);padding:6px 12px;min-height:46px;display:flex;flex-direction:column;justify-content:center;gap:1px;line-height:1.2;overflow-wrap:anywhere}
+.dazu b{font-family:var(--f-num);font-weight:700;font-size:var(--step-1);line-height:1.05;font-variant-numeric:lining-nums tabular-nums;white-space:nowrap}
+.danach{margin-top:var(--space-s);padding-top:var(--space-xs);border-top:1px solid var(--linie);color:var(--leise);font-size:var(--step-n1)}
+.danach b{color:var(--text)}
+.mitte{flex:1}
+.koch-unten{position:sticky;bottom:0;display:grid;grid-template-columns:76px 1fr;gap:var(--space-2xs);margin-top:var(--space-xs);padding:10px 0 calc(4px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--bg) 18%)}
+.koch-unten button{height:64px;border-radius:14px;font-size:var(--step-1);font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+.koch-unten .z{background:var(--karte);border:1px solid var(--linie)}
+.koch-unten .w{background:var(--akzent);color:var(--aufakzent)}
+.wisch{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--leise);font-size:var(--step-n2);margin-top:4px}
+.wisch .i{width:16px;height:16px}
+
+/* Laufender Wecker */
+.wecker-lauf{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;background:var(--zeit-hell);
+  border:1px solid var(--zeit-rand);border-radius:var(--r-anzeige);padding:10px 10px 10px 16px;color:var(--zeit-tief)}
+.wecker-lauf .rest{line-height:1}
+.wecker-lauf .rest strong{display:flex;align-items:center;gap:8px;font-size:2.2rem;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums}
+.wecker-lauf .rest span{display:block;font-size:var(--step-n1);font-weight:600;margin-top:4px}
+.wecker-lauf button{height:52px;min-width:56px;padding:0 12px;border-radius:12px;font-weight:800;font-size:var(--step-n1);
+  background:var(--karte);color:var(--text);border:1px solid var(--zeit-rand)}
+.schritt-gross{font-family:var(--f-num);font-weight:800;font-size:var(--step-5);line-height:.9;font-variant-numeric:lining-nums;margin-top:var(--space-s)}
+.schritt-gross small{font-family:var(--f-text);font-size:var(--step-n1);font-weight:600;color:var(--leise);margin-left:6px;letter-spacing:0}
+
+/* ---------- Einkaufszettel ---------- */
+.ek-rezept{display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto;align-items:center;column-gap:var(--space-xs);row-gap:8px;gap:var(--space-xs);padding:var(--space-2xs) 0;border-bottom:1px solid var(--linie)}
+.ek-rezept img{grid-row:1/3;align-self:start;width:76px;height:76px;object-fit:cover;border-radius:var(--r-foto)}
+.ek-rezept .portionen{justify-self:start}
+.ek-rezept a{font-family:var(--f-head);font-weight:700;letter-spacing:-.01em;font-size:var(--step-0);line-height:1.15}
+.ek-rezept a small{display:block;font-family:var(--f-text);font-weight:500;font-size:var(--step-n1);color:var(--leise);margin-top:3px}
+.stand{display:flex;justify-content:space-between;align-items:baseline;margin:var(--space-m) 0 0}
+.stand b{font-family:var(--f-num);font-size:var(--step-3);font-weight:800;font-variant-numeric:lining-nums;line-height:1}
+.stand span:last-child{color:var(--leise);font-size:var(--step-n1)}
+.bereich h3{display:flex;justify-content:space-between;font-family:var(--f-text);font-size:var(--step-n1);font-weight:700;color:var(--leise);margin:var(--space-m) 0 4px}
+.posten{list-style:none;padding:0;border-top:1px solid var(--linie)}
+.posten li{display:grid;grid-template-columns:30px 5rem 1fr;align-items:center;gap:var(--space-xs);min-height:58px;border-bottom:1px solid var(--linie)}
+.haken{width:30px;height:30px;border-radius:50%;border:2px solid var(--leise);display:grid;place-items:center;color:var(--aufakzent)}
+.haken .i{width:18px;height:18px;stroke-width:3;visibility:hidden}
+.posten .m{font-family:var(--f-num);font-weight:700;font-variant-numeric:lining-nums tabular-nums;text-align:right;white-space:nowrap}
+.posten li.hab{color:var(--leise)}
+.posten li.hab .haken{background:var(--akzent);border-color:var(--akzent)}
+.posten li.hab .haken .i{visibility:visible}
+.posten li.hab .n,.posten li.hab .m{text-decoration:line-through;text-decoration-thickness:1.5px}
+.ek-handlung{position:fixed;left:0;right:0;bottom:calc(var(--leiste-h) + env(safe-area-inset-bottom));z-index:4;
+  background:linear-gradient(to bottom,transparent,var(--bg) 22%);padding:22px var(--rand) 10px}
+.ek-handlung .innen{max-width:var(--spalte);margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:8px}
+.ek-handlung .neben{width:52px;padding:0}
+.ek-handlung .haupt{padding:0 10px;font-size:1.0625rem}
+
+/* ---------- Mehr ---------- */
+.zeile-schalter{display:flex;align-items:center;justify-content:space-between;gap:var(--space-xs);min-height:60px;border-top:1px solid var(--linie);border-bottom:1px solid var(--linie)}
+.schalter{flex:none;width:52px;height:32px;border-radius:var(--r-rund);background:var(--linie);position:relative}
+.schalter::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--karte);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.schalter[aria-checked=true]{background:var(--akzent)}
+.schalter[aria-checked=true]::after{left:23px}
+textarea.vorrat{width:100%;margin-top:var(--space-xs);min-height:7.5rem;padding:12px 14px;border:1px solid var(--linie);border-radius:var(--r-feld);background:var(--karte);line-height:1.5;resize:vertical}
+.anleitung{padding-left:1.6em;margin-top:var(--space-2xs);display:grid;gap:var(--space-2xs);color:var(--text);font-size:var(--step-n1);line-height:1.45}
+.anleitung li::marker{font-family:var(--f-num);font-weight:700;font-variant-numeric:lining-nums}
+.ueber{display:flex;align-items:center;gap:var(--space-xs);margin-bottom:var(--space-xs)}
+.ueber svg{width:64px;height:64px;border-radius:15px;flex:none}
+
+/* ---------- Anmeldung ---------- */
+.anmeldung{min-height:100dvh;display:flex;flex-direction:column}
+.fotowand{position:relative;height:52vh;min-height:360px;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 6px}
+.fotowand .spalte{display:flex;flex-direction:column;gap:6px}
+.fotowand .spalte:nth-child(2){margin-top:-60px}
+.fotowand .spalte:nth-child(3){margin-top:-24px}
+.fotowand img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:var(--r-foto)}
+.fotowand::after{content:"";position:absolute;inset:auto 0 0 0;height:62%;background:linear-gradient(to bottom,transparent,var(--bg))}
+@media (prefers-reduced-motion:no-preference){
+  .fotowand .spalte{animation:treiben 60s linear infinite alternate}
+  .fotowand .spalte:nth-child(2){animation-direction:alternate-reverse}
+  @keyframes treiben{to{transform:translateY(-40px)}}
+}
+.anmeldung form{position:relative;z-index:1;margin-top:-72px;padding:0 var(--rand) calc(var(--space-m) + env(safe-area-inset-bottom));max-width:30rem;width:100%;align-self:center}
+.anmeldung h1{font-size:var(--step-5);font-weight:800;line-height:.95;letter-spacing:-.025em}
+.anmeldung p.einl{margin:var(--space-xs) 0 var(--space-m);color:var(--leise)}
+.anmeldung .knopf{margin-top:var(--space-2xs);width:100%}
+.anmeldung .klein{display:flex;align-items:center;gap:8px;margin-top:var(--space-s);color:var(--leise);font-size:var(--step-n1)}
+.anmeldung .klein .i{width:18px;height:18px}
+
+/* ---------- Meldung („Auf den Zettel“) ---------- */
+.meldung{position:fixed;left:var(--rand);right:var(--rand);bottom:calc(var(--leiste-h) + 12px + env(safe-area-inset-bottom));z-index:6;
+  display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;border-radius:12px;background:var(--text);color:var(--bg);font-weight:600;font-size:var(--step-n1)}
+.meldung button{margin-left:auto;height:44px;padding:0 14px;border-radius:8px;font-weight:800;color:var(--bg);text-decoration:underline;text-underline-offset:3px}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.leiste,.ek-handlung,.handlungen,.nicht-drucken{display:none!important}body{background:#fff}}
+
+.koch-text.tm{font-size:var(--step-1);line-height:1.32;margin:var(--space-xs) 0 var(--space-2xs)}
+
+/* ---------- Ergänzungen für die App (Umbau 13.11.2026) ---------- */
 [hidden]{display:none!important}
+body{min-height:100dvh}
+a.link{color:var(--akzent);font-weight:700}
+.anm a,.quelle a,.fakten a,.hinweis a{color:var(--akzent);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.kopf .zurueck .i{margin-right:-2px}
+.kopf h1.lang{font-size:var(--step-2)}
 
-#kopf{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--linie);
-  padding:calc(8px + env(safe-area-inset-top)) 16px 8px;display:flex;align-items:center;gap:8px;min-height:52px}
-#kopf h1{font-size:21px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#zurueck{background:none;border:0;color:var(--akzent);font-size:17px;padding:6px 8px 6px 0;cursor:pointer}
-main{max-width:760px;margin:0 auto;padding:12px 16px 24px}
+/* Filter: Auswahl (Anlass, Zutat) als Knopf mit nativer Liste darüber */
+.filter .wahl{position:relative;flex:none;height:44px;padding:0 12px 0 16px;display:flex;align-items:center;gap:4px;border-radius:var(--r-feld);
+  background:var(--karte);border:1px solid var(--linie);font-weight:600;font-size:var(--step-n1);white-space:nowrap}
+.filter .wahl select{position:absolute;inset:0;opacity:0;width:100%;font-size:16px;cursor:pointer}
+.filter .wahl.an{background:var(--akzent);border-color:var(--akzent);color:var(--aufakzent)}
+.filter .wahl:focus-within{outline:3px solid var(--akzent);outline-offset:2px}
+.filter .i.klein{width:18px;height:18px}
 
-#leiste{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--karte);border-top:1px solid var(--linie);
-  display:flex;padding-bottom:env(safe-area-inset-bottom)}
-#leiste a{flex:1;text-align:center;text-decoration:none;color:var(--leise);font-size:12px;padding:8px 0 6px;position:relative}
-#leiste a .sym{display:block;font-size:22px;line-height:1.1}
-#leiste a.aktiv{color:var(--akzent);font-weight:600}
-.zahl{position:absolute;top:3px;left:calc(50% + 8px);background:var(--akzent);color:#fff;border-radius:9px;
-  font-size:11px;min-width:18px;padding:0 5px;line-height:18px;font-weight:600}
+/* Saisonbild: kleiner als im Entwurf (Christian, 13.11.) */
+.saison img{aspect-ratio:2/1}
+.saison h2{font-size:var(--step-2)}
+.saison-link{display:inline-flex;align-items:center;gap:4px;min-height:44px;color:var(--akzent);font-weight:700}
+.raster-kopf{margin-top:var(--space-l)}
+.raster-kopf h2{display:flex;align-items:center;gap:8px}
+.raster-kopf .sterne .i{width:22px;height:22px}
+.raster-kopf h2 .sterne{color:var(--stern)}
+.raster-kopf.erster{margin-top:var(--space-s)}
+.kachel .wert-s{display:inline-flex;align-items:center;gap:3px;color:var(--text);font-weight:700}
+.kachel .wert-s .i{width:15px;height:15px;fill:currentColor}
+.zeilen-link{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px;margin-top:var(--space-l);
+  border-top:1px solid var(--linie);border-bottom:1px solid var(--linie);font-weight:700}
+.zeilen-link span{color:var(--leise);font-weight:600;display:flex;align-items:center;gap:4px}
+.leer .knoepfe{max-width:22rem}
 
-.suche{width:100%;padding:11px 14px;border:1px solid var(--linie);border-radius:12px;background:var(--karte);font-size:17px}
-.reiter{display:flex;gap:6px;margin:14px 0 12px;overflow-x:auto;scrollbar-width:none}
-.reiter button{flex:1;border:1px solid var(--linie);background:var(--karte);border-radius:999px;padding:8px 12px;
-  white-space:nowrap;cursor:pointer;font-size:15px}
-.reiter button.aktiv{background:var(--akzent);border-color:var(--akzent);color:#fff;font-weight:600}
-.kacheln{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.kachel{background:var(--karte);border-radius:14px;padding:14px;box-shadow:var(--schatten);text-decoration:none;color:var(--text);
-  display:flex;justify-content:space-between;align-items:center;gap:8px}
-.kachel b{font-weight:600;min-width:0;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
-.kachel span{flex-shrink:0}
-.kachel span{color:var(--leise);font-size:14px}
-.leer{color:var(--leise);text-align:center;padding:32px 8px}
+/* Hinweis „Als App ablegen“ */
+.installieren{display:flex;align-items:flex-start;gap:12px;margin:var(--space-3xs) 0 var(--space-xs);padding:12px 6px 12px 14px;
+  background:var(--karte);border:1px solid var(--linie);border-radius:var(--r-feld);font-size:var(--step-n1);line-height:1.45}
+.installieren > .i{color:var(--akzent);margin-top:1px}
+.installieren button{width:40px;height:40px;margin:-8px 0 -8px auto;display:grid;place-items:center;color:var(--leise);flex:none}
 
-.karten{display:flex;flex-direction:column;gap:10px}
-.rk{background:var(--karte);border-radius:14px;padding:14px 16px;box-shadow:var(--schatten);text-decoration:none;color:var(--text);display:block}
-.rk h3{margin:0 0 4px;font-size:19px}
-.rk p{margin:0;color:var(--leise);font-size:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rk .unter{margin-top:6px;font-size:13px;color:var(--leise)}
+/* Rezept */
+.zutaten-gruppe{font-family:var(--f-text);font-size:var(--step-n1);font-weight:700;color:var(--leise);letter-spacing:0;margin:var(--space-s) 0 4px}
+.zutaten + .hinweis{margin-top:var(--space-2xs)}
+.schritte .nr{padding-top:2px}
+.schlagworte{display:flex;flex-wrap:wrap;gap:4px 12px}
+.tb .knopf.leise{min-height:44px;padding-left:0;margin-top:2px}
+.tb-form{margin-top:var(--space-xs);display:grid;gap:var(--space-2xs)}
+.tb-form label{font-weight:700;font-size:var(--step-n1);color:var(--leise);margin-top:var(--space-2xs)}
+.tb-form input[type=date],.tb-form textarea{width:100%;min-height:52px;padding:12px 14px;border:1px solid var(--linie);border-radius:var(--r-feld);background:var(--karte)}
+.tb-form textarea{min-height:6rem;resize:vertical;line-height:1.45}
+.sternwahl{display:flex;gap:4px}
+.sternwahl button{width:48px;height:48px;display:grid;place-items:center;color:var(--stern)}
+.sternwahl .i{width:32px;height:32px}
+.sternwahl .voll{fill:currentColor}
 
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
-.chip{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--akzent-hell);color:var(--text);text-decoration:none;white-space:nowrap}
-.chip.warn{background:var(--warn-hell);color:var(--warn)}
-.chip.gruen{background:transparent;border:1px solid var(--gruen);color:var(--gruen)}
+/* Anmeldung */
+.anmeldung .fehler{min-height:1.5em;margin-top:var(--space-2xs);color:var(--warn);font-weight:600;font-size:var(--step-n1)}
+.anmeldung .fehler:empty{min-height:0;margin:0}
+.fotowand:empty{background:var(--akzent-hell)}
 
-.rezept h2{font-size:28px;margin:6px 0 6px}
-.foto{display:block;width:calc(100% + 32px);margin:-12px -16px 10px;aspect-ratio:4/3;object-fit:cover;background:var(--linie)}
-@media (min-width:700px){.foto{width:100%;margin:0 0 10px;border-radius:16px}}
-.rk{display:flex!important;gap:12px;align-items:center}
-.rk .txt{flex:1;min-width:0}
-.rk img{width:76px;height:76px;border-radius:10px;object-fit:cover;flex:0 0 76px;background:var(--linie)}
-.kurz{color:var(--leise);margin:0 0 8px;font-size:17px}
-.meta{font-size:14px;color:var(--leise);margin:4px 0}
-.abschnitt{background:var(--karte);border-radius:16px;padding:16px;margin:14px 0;box-shadow:var(--schatten)}
-.abschnitt h3{margin:0 0 10px;font-size:20px}
-.portionen{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.portionen button{width:40px;height:40px;border-radius:50%;border:1px solid var(--linie);background:var(--bg);font-size:22px;cursor:pointer;line-height:1}
-.portionen output{font-weight:600;font-size:18px;min-width:96px;text-align:center}
-.zutaten{list-style:none;margin:0;padding:0}
-.zutaten li{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--linie)}
-.zutaten li:last-child{border-bottom:0}
-.zutaten .m{flex:0 0 96px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
-.zutaten .h{color:var(--leise)}
-.gruppe{font-weight:600;color:var(--akzent);margin:12px 0 2px;font-size:15px}
-.schritte{margin:0;padding-left:24px}
-.schritte li{margin:0 0 12px;padding-left:4px}
-.anm{white-space:pre-wrap}
-.knoepfe{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
-.knopf{border:1px solid var(--linie);background:var(--karte);border-radius:12px;padding:11px 12px;cursor:pointer;text-align:center;
-  text-decoration:none;color:var(--text);font-size:15px}
-.knopf.haupt{background:var(--akzent);border-color:var(--akzent);color:#fff;font-weight:600}
-.knopf.breit{grid-column:1/-1}
-.knopf:disabled{opacity:.5}
-.umschalter{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:12px;border:1px solid var(--linie)}
-.umschalter button{flex:1;border:0;background:none;padding:7px;border-radius:8px;cursor:pointer;font-size:14px}
-.umschalter button.aktiv{background:var(--karte);box-shadow:var(--schatten);font-weight:600}
+/* Kochmodus */
+#koch{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;overscroll-behavior:contain}
+.koch .fassung{margin-bottom:var(--space-2xs)}
+.wert strong.wort{font-size:1.7rem;letter-spacing:-.01em;padding-top:.5rem}
+.anzeige + .koch-text{margin-top:var(--space-s)}
+.wecker-lauf{margin-bottom:var(--space-xs)}
+.wecker-lauf.klingelt{background:var(--zeit-rand);color:#1d1400}
+@media (prefers-reduced-motion:no-preference){.wecker-lauf.klingelt{animation:puls 1s infinite}}
+@keyframes puls{50%{transform:scale(1.03)}}
+.koch details{margin-top:var(--space-s);border-top:1px solid var(--linie);padding-top:var(--space-2xs)}
+.koch summary{min-height:44px;display:flex;align-items:center;gap:6px;font-weight:700;color:var(--leise);cursor:pointer;font-size:var(--step-n1)}
+.koch details .zutaten{margin-top:var(--space-2xs)}
+.koch-unten button:disabled{opacity:.4}
+.koch-unten .w.fertig{background:var(--text);color:var(--bg)}
+.koch-text .tmwert{font-size:.92em}
 
-.tb-eintrag{border-bottom:1px solid var(--linie);padding:8px 0}
-.tb-eintrag:last-child{border-bottom:0}
-.tb-kopf{display:flex;justify-content:space-between;font-size:14px;color:var(--leise)}
-.sterne{color:#d39a2c;letter-spacing:1px}
-.sterngruppe{font-size:20px;margin:18px 0 8px;display:flex;align-items:baseline;gap:8px}.sterngruppe:first-child{margin-top:0}
-.sternwahl button{background:none;border:0;font-size:30px;color:#d39a2c;cursor:pointer;padding:0 2px}
-textarea,input[type=text],input[type=password],input[type=date]{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:10px;background:var(--bg)}
-textarea{min-height:80px;resize:vertical}
-label{display:block;font-size:14px;color:var(--leise);margin:10px 0 4px}
+/* Wecker außerhalb des Kochmodus */
+#wecker{position:fixed;left:var(--rand);right:var(--rand);bottom:calc(var(--leiste-h) + 12px + env(safe-area-inset-bottom));z-index:60;
+  max-width:var(--spalte);margin:0 auto;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 
-.ek-rezept{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie)}
-.ek-rezept:last-child{border-bottom:0}
-.ek-rezept a{flex:1;color:var(--text);text-decoration:none;font-weight:600}
-.ek-rezept .portionen{margin:0;gap:6px}
-.ek-rezept .portionen button{width:32px;height:32px;font-size:18px}
-.ek-rezept .portionen output{min-width:34px;font-size:16px}
-.weg{background:none;border:0;color:var(--leise);font-size:20px;cursor:pointer}
-.bereich{font-weight:600;color:var(--akzent);margin:14px 0 4px;font-size:15px}
-.bereich:first-child{margin-top:0}
-.posten{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer}
-.posten input{width:22px;height:22px;accent-color:var(--akzent)}
-.posten.hab span{text-decoration:line-through;color:var(--leise)}
-.hinweis{font-size:14px;color:var(--leise)}
+/* Einkaufszettel */
+.ek-rezept{grid-template-columns:76px 1fr auto}
+.ek-rezept img{grid-row:1/3}
+.ek-rezept a{grid-column:2/4}
+.ek-rezept .portionen{grid-column:2}
+.ek-rezept .raus{grid-column:3;width:44px;height:44px;display:grid;place-items:center;color:var(--leise)}
+.ek-rezept .ohne-bild{grid-row:1/3;width:76px;height:76px;border-radius:var(--r-foto);background:var(--linie)}
+.haken{cursor:pointer}
+.posten li{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.posten .n{line-height:1.3;padding:8px 0}
+.ek-hinweis{margin-top:var(--space-2xs)}
 
-#anmeldung{max-width:420px;margin:12vh auto 0;padding:24px;text-align:center}
-#anmeldung img{width:88px;height:88px;border-radius:20px}
-#anmeldung h1{font-size:30px;margin:14px 0 6px}
-#anmeldung .fehler{color:var(--warn);min-height:24px;margin:8px 0}
+/* Mehr */
+.zeile-schalter{cursor:pointer}
+.feld + .knoepfe{margin-top:var(--space-2xs)}
+.ueber p{line-height:1.4}
 
-#koch{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;
-  padding:calc(12px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom))}
-#koch .oben{display:flex;justify-content:space-between;align-items:center;gap:10px}
-#koch .oben b{font-family:Georgia,serif;font-size:18px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#koch .schritt{flex:1;display:flex;flex-direction:column;justify-content:center;font-size:clamp(22px,5.5vw,34px);line-height:1.4;overflow:auto;padding:12px 0}
-#koch .nr{font-size:15px;color:var(--leise);margin-bottom:8px}
-#koch .unten{display:flex;gap:10px}
-#koch .unten .knopf{flex:1;padding:16px;font-size:18px}
-.uhr{display:inline-block;margin-top:14px;font-size:18px}
-#wecker{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;
-  background:var(--text);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:600;font-variant-numeric:tabular-nums;
-  box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}
-#wecker button{background:none;border:0;color:inherit;font-size:16px;cursor:pointer}
-#wecker.klingelt{background:var(--warn);color:#fff;animation:puls 1s infinite}
-@keyframes puls{50%{transform:translateX(-50%) scale(1.06)}}
-#meldung{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;
-  background:var(--text);color:var(--bg);border-radius:12px;padding:10px 16px;max-width:90vw;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
-#installieren{background:var(--akzent-hell);border-radius:12px;padding:10px 14px;font-size:14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
-#installieren button{background:none;border:0;font-size:18px;color:var(--leise);cursor:pointer;margin-left:auto}
+/* Meldung */
+.meldung{max-width:var(--spalte);margin:0 auto;z-index:70}
+.meldung a{margin-left:auto;min-height:44px;padding:0 10px;display:flex;align-items:center;font-weight:800;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
 
 @media print{
-  #kopf,#leiste,.knoepfe,.umschalter,.portionen button,#tb-bereich,#installieren,#meldung,#wecker,.nicht-drucken{display:none!important}
-  body{background:#fff;color:#000;padding:0;font-size:12pt}
-  main{max-width:none;padding:0}
-  .abschnitt{box-shadow:none;border:0;padding:0;margin:12pt 0}
-  .chip{background:none;border:1px solid #999;color:#000}
-  .rezept h2{font-size:22pt}
+  body{background:#fff;color:#000;font-size:11pt}
+  .leiste,.kopf,.handlungen,.fassung,.portionen,.umgerechnet,#tb-bereich,.installieren,.meldung,#wecker,.nicht-drucken{display:none!important}
+  .seite{max-width:none;padding:0}
+  .foto{max-height:9cm;width:auto!important;margin:0!important;border-radius:6px}
+  .titel{font-size:22pt}
+  .abschnitt{padding-top:14pt}
+  .tmwert{background:none;padding:0}
 }
+input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none;appearance:none}
+
 </style>
 </head>
 <body>
-<div id="anmeldung" hidden>
-  <img src="icon-192.png" alt="">
-  <h1>Kochbuch</h1>
-  <p class="hinweis">Bitte das Familien-Passwort eingeben. Danach öffnet sich das Kochbuch auch ohne Internet.</p>
+<main id="anmeldung" class="anmeldung" hidden>
+  <div class="fotowand" id="fotowand" aria-hidden="true"></div>
   <form id="anmeldeForm">
-    <input type="password" id="pw" autocomplete="current-password" placeholder="Passwort" aria-label="Passwort">
-    <div class="fehler" id="pwFehler"></div>
-    <button class="knopf haupt" style="width:100%">Öffnen</button>
+    <h1>Unser Kochbuch</h1>
+    <p class="einl">Familien-Passwort eingeben. Danach öffnet sich das Kochbuch auch ohne Internet.</p>
+    <label class="feld"><span data-ic="key-round"></span><span class="sr">Familien-Passwort</span>
+      <input type="password" id="pw" autocomplete="current-password" placeholder="Familien-Passwort">
+      <button type="button" class="feldknopf" data-zeigen="pw" aria-label="Passwort zeigen"><span data-ic="eye"></span></button></label>
+    <p class="fehler" id="pwFehler" role="alert"></p>
+    <button class="knopf haupt"><span data-ic="book-open"></span>Kochbuch öffnen</button>
+    <p class="klein"><span data-ic="lock"></span>Bleibt auf diesem Gerät angemeldet.</p>
   </form>
-</div>
+</main>
 
 <div id="app" hidden>
-  <header id="kopf">
-    <button id="zurueck" hidden aria-label="Zurück">‹ Zurück</button>
-    <h1 id="titel">Kochbuch</h1>
-  </header>
-  <main id="inhalt"></main>
-  <nav id="leiste">
-    <a href="#/" data-n="start"><span class="sym">📖</span>Kochbuch</a>
-    <a href="#/einkauf" data-n="einkauf"><span class="sym">🛒</span>Einkauf<span class="zahl" id="ekZahl" hidden></span></a>
-    <a href="#/mehr" data-n="mehr"><span class="sym">⚙︎</span>Mehr</a>
+  <main id="inhalt" class="seite"></main>
+  <nav class="leiste" id="leiste" aria-label="Hauptbereiche">
+    <a href="#/" data-n="start"><span data-ic="book-open"></span>Kochbuch</a>
+    <a href="#/einkauf" data-n="einkauf"><span data-ic="shopping-basket"></span><span class="zaehler" id="ekZahl" hidden></span>Einkauf</a>
+    <a href="#/mehr" data-n="mehr"><span data-ic="ellipsis"></span>Mehr</a>
   </nav>
 </div>
 <div id="koch" hidden></div>
-<div id="wecker" hidden></div>
-<div id="meldung" hidden></div>
+<section id="wecker" class="wecker-lauf" role="timer" aria-label="Wecker" hidden></section>
+<div id="meldung" class="meldung" role="status" hidden></div>
 
 <script>
 'use strict';
-const VERSION = '202611131416';
+const VERSION = '202611131455';
 const REPO = 'cmengro65/kochbuch';
-const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Typ'};
+const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Gerichtart', saison:'Saison'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
   'Gewürze & Öle','Asia & International','Tiefkühl','Getränke','Sonstiges'];
 const ZAEHLBAR = ['','stück','stk','zehe','zehen','bund','dose','dosen','packung','pck','päckchen','becher','glas','gläser',
   'zweig','zweige','stange','stangen','knolle','kopf','köpfe','scheibe','scheiben','beutel','flasche','tüte'];
+// Fotos für die Anmeldeseite – schreibt build.mjs hinein (die Rezeptdaten sind vor der Anmeldung verschlüsselt)
+const ANMELDEBILDER = (() => { try{ return JSON.parse('["bilder/fccd8a504524-klein.jpg","bilder/99d16f338054-klein.jpg","bilder/40af9a048edf-klein.jpg","bilder/5b1489f2dacc-klein.jpg","bilder/a6af1f8c0f3c-klein.jpg","bilder/d3320c3144ac-klein.jpg","bilder/a11b1a478a23-klein.jpg","bilder/b540d825c6bd-klein.jpg","bilder/bab8499e893b-klein.jpg"]'); }catch(e){ return []; } })();
+
+const IC = {"search":"<path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/>",
+  "x":"<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>",
+  "chevron-left":"<path d=\"m15 18-6-6 6-6\"/>",
+  "chevron-right":"<path d=\"m9 18 6-6-6-6\"/>",
+  "chevron-down":"<path d=\"m6 9 6 6 6-6\"/>",
+  "book-open":"<path d=\"M12 7v14\"/><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/>",
+  "shopping-basket":"<path d=\"m15 11-1 9\"/><path d=\"m19 11-4-7\"/><path d=\"M2 11h20\"/><path d=\"m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4\"/><path d=\"M4.5 15.5h15\"/><path d=\"m5 11 4-7\"/><path d=\"m9 11 1 9\"/>",
+  "ellipsis":"<circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/>",
+  "clock":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 6v6l4 2\"/>",
+  "sprout":"<path d=\"M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3\"/><path d=\"M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4\"/><path d=\"M5 21h14\"/>",
+  "triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>",
+  "play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>",
+  "share":"<path d=\"M12 2v13\"/><path d=\"m16 6-4-4-4 4\"/><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\"/>",
+  "printer":"<path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\"/>",
+  "plus":"<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>",
+  "minus":"<path d=\"M5 12h14\"/>",
+  "check":"<path d=\"M20 6 9 17l-5-5\"/>",
+  "eye":"<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>",
+  "lock":"<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\"/><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"/>",
+  "timer":"<line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\"/><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\"/><circle cx=\"12\" cy=\"14\" r=\"8\"/>",
+  "rotate-ccw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/>",
+  "notebook-pen":"<path d=\"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4\"/><path d=\"M2 6h4\"/><path d=\"M2 10h4\"/><path d=\"M2 14h4\"/><path d=\"M2 18h4\"/><path d=\"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z\"/>",
+  "star":"<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>",
+  "search-x":"<path d=\"m13.5 8.5-5 5\"/><path d=\"m8.5 8.5 5 5\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/>",
+  "refresh-cw":"<path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\"/><path d=\"M21 3v5h-5\"/><path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\"/><path d=\"M8 16H3v5\"/>",
+  "log-out":"<path d=\"m16 17 5-5-5-5\"/><path d=\"M21 12H9\"/><path d=\"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4\"/>",
+  "key-round":"<path d=\"M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z\"/><circle cx=\"16.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\"/>",
+  "snowflake":"<path d=\"m10 20-1.25-2.5L6 18\"/><path d=\"M10 4 8.75 6.5 6 6\"/><path d=\"m14 20 1.25-2.5L18 18\"/><path d=\"m14 4 1.25 2.5L18 6\"/><path d=\"m17 21-3-6h-4\"/><path d=\"m17 3-3 6 1.5 3\"/><path d=\"M2 12h6.5L10 9\"/><path d=\"m20 10-1.5 2 1.5 2\"/><path d=\"M22 12h-6.5L14 15\"/><path d=\"m4 10 1.5 2L4 14\"/><path d=\"m7 21 3-6-1.5-3\"/><path d=\"m7 3 3 6h4\"/>",
+  "list-plus":"<path d=\"M16 5H3\"/><path d=\"M11 12H3\"/><path d=\"M16 19H3\"/><path d=\"M18 9v6\"/><path d=\"M21 12h-6\"/>",
+  "cooking-pot":"<path d=\"M2 12h20\"/><path d=\"M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\"/><path d=\"m4 8 16-4\"/><path d=\"m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8\"/>",
+  "arrow-left-right":"<path d=\"M8 3 4 7l4 4\"/><path d=\"M4 7h16\"/><path d=\"m16 21 4-4-4-4\"/><path d=\"M20 17H4\"/>",
+  "git-branch":"<path d=\"M15 6a9 9 0 0 0-9 9V3\"/><circle cx=\"18\" cy=\"6\" r=\"3\"/><circle cx=\"6\" cy=\"18\" r=\"3\"/>",
+  "smartphone":"<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/>",
+  "sun":"<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2\"/><path d=\"M12 20v2\"/><path d=\"m4.93 4.93 1.41 1.41\"/><path d=\"m17.66 17.66 1.41 1.41\"/><path d=\"M2 12h2\"/><path d=\"M20 12h2\"/><path d=\"m6.34 17.66-1.41 1.41\"/><path d=\"m19.07 4.93-1.41 1.41\"/>",
+  "leaf":"<path d=\"M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z\"/><path d=\"M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12\"/>",
+  "gift":"<path d=\"M12 7v14\"/><path d=\"M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8\"/><path d=\"M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5\"/><rect x=\"3\" y=\"7\" width=\"18\" height=\"4\" rx=\"1\"/>",
+  "flower-2":"<path d=\"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1\"/><circle cx=\"12\" cy=\"8\" r=\"2\"/><path d=\"M12 10v12\"/><path d=\"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z\"/><path d=\"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z\"/>",
+  "trash-2":"<path d=\"M10 11v6\"/><path d=\"M14 11v6\"/><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\"/><path d=\"M3 6h18\"/><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/>",
+  "alarm-clock":"<circle cx=\"12\" cy=\"13\" r=\"8\"/><path d=\"M12 9v4l2 2\"/><path d=\"M5 3 2 6\"/><path d=\"m22 6-3-3\"/><path d=\"M6.38 18.7 4 21\"/><path d=\"M17.64 18.67 20 21\"/>",
+  "x-thermomix":"<path d=\"M9 2.5h6\"/><path d=\"M12 2.5V5\"/><path d=\"M5.5 5h13\"/><path d=\"M6.5 5l1.3 13.2A2 2 0 0 0 9.8 20h4.4a2 2 0 0 0 2-1.8L17.5 5\"/><path d=\"M17.2 8.5h1.8a1.5 1.5 0 0 1 1.5 1.5v3.5a1.5 1.5 0 0 1-1.5 1.5h-2.3\"/><path d=\"m9.5 15.5 5-2\"/><path d=\"m9.5 13.5 5 2\"/><path d=\"M12 14.5V20\"/>"};
+const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
+const RUEHR = '<svg class="ruehr" viewBox="0 0 40 34" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" aria-hidden="true"><path d="M5 20c4-8 8 8 12 0s8 8 12 0 6-6 6-6"/></svg>';
+const APPSYMBOL = '<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" fill="#1f6a4a"/><path d="M252 182C206 154 150 148 108 158V366C150 356 206 360 252 388Z" fill="#e9efeb"/><path d="M260 182C306 154 362 148 404 158V366C362 356 306 360 260 388Z" fill="#e9efeb"/><path d="M140 214C176 208 206 212 226 222M140 254C176 248 206 252 226 262M140 294C176 288 206 292 226 302M372 214C336 208 306 212 286 222M372 254C336 248 306 252 286 262" stroke="#1f6a4a" stroke-opacity=".28" stroke-width="10" stroke-linecap="round" fill="none"/><rect x="244" y="168" width="24" height="262" rx="12" fill="#d9a441"/><ellipse cx="256" cy="134" rx="38" ry="52" fill="#d9a441"/></svg>';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -209,6 +590,9 @@ const speicher = {
   weg(k){ try{ localStorage.removeItem('kb.'+k); }catch(e){} }
 };
 const sortDe = (a, b) => a.localeCompare(b, 'de', {sensitivity:'base'});
+const mehrzahl = (n, ein, viele) => `${n} ${n === 1 ? ein : viele}`;
+// Platzhalter <span data-ic="…"> im festen HTML gegen Symbole tauschen
+document.querySelectorAll('[data-ic]').forEach(s => s.outerHTML = ic(s.dataset.ic));
 
 /* ---------- Verschlüsselung (AES-GCM, Schlüssel aus Passwort per PBKDF2) ---------- */
 function zuB64(buf){ const u = new Uint8Array(buf); let s = ''; for(let i=0;i<u.length;i+=0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i+0x8000)); return btoa(s); }
@@ -236,6 +620,8 @@ let SCHL = speicher.get('schluessel', null); // {salt, iter, roh}
 let UMSCHLAG = null;
 const PORT = {};           // gewählte Portionen je Rezept (Sitzung)
 const rezeptVon = id => DATEN.rezepte.find(r => r.id === id);
+const hatTM = r => (r.thermomix || []).length > 0;
+const vorschau = r => r.klein || r.bild;
 
 async function ladeUmschlag(datei){
   try{
@@ -256,8 +642,12 @@ async function start(){
   await ladeTagebuch();
   // Gespeicherte Anmeldung vor dem Aufräumen durch den Browser schützen
   try{ navigator.storage?.persist?.(); }catch(e){}
-  // Alle Fotos im Hintergrund laden, damit sie auch ohne Internet da sind
-  setTimeout(() => DATEN.rezepte.filter(r => r.bild).forEach(r => fetch(r.bild).catch(() => {})), 3000);
+  // Alle Fotos im Hintergrund laden, damit sie auch ohne Internet da sind – zuerst die kleinen fürs Raster
+  setTimeout(async () => {
+    for(const u of [...DATEN.rezepte.map(r => r.klein), ...DATEN.rezepte.map(r => r.bild)].filter(Boolean)){
+      try{ await fetch(u); }catch(e){ return; }
+    }
+  }, 3000);
   $('#anmeldung').hidden = true; $('#app').hidden = false;
   zeigen();
 }
@@ -265,7 +655,9 @@ async function start(){
 function zeigeAnmeldung(text){
   $('#app').hidden = true; $('#anmeldung').hidden = false;
   $('#pwFehler').textContent = text || '';
-  setTimeout(() => $('#pw').focus(), 50);
+  const b = ANMELDEBILDER.slice(0, 9);
+  if(b.length >= 3 && !$('#fotowand').children.length)
+    $('#fotowand').innerHTML = [0,1,2].map(s => `<div class="spalte">${b.filter((_, i) => i % 3 === s).map(u => `<img src="${esc(u)}" alt="">`).join('')}</div>`).join('');
 }
 $('#anmeldeForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -278,7 +670,14 @@ $('#anmeldeForm').addEventListener('submit', async e => {
     speicher.set('schluessel', SCHL);
     $('#pw').value = '';
     start();
-  }catch(err){ $('#pwFehler').textContent = 'Das Passwort stimmt nicht.'; }
+  }catch(err){ $('#pwFehler').textContent = 'Das Passwort stimmt nicht. Bitte nochmal eingeben.'; }
+});
+// Augen-Knopf: Passwort bzw. Schlüssel lesbar machen
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-zeigen]'); if(!b) return;
+  const f = document.getElementById(b.dataset.zeigen);
+  f.type = f.type === 'password' ? 'text' : 'password';
+  b.setAttribute('aria-label', f.type === 'password' ? 'Zeigen' : 'Verbergen');
 });
 
 async function ladeTagebuch(){
@@ -298,15 +697,18 @@ function runde(x, e){
   const q = Math.round(x*4)/4, t = Math.round(x*3)/3;
   return Math.abs(t-x) < Math.abs(q-x) - 1e-9 ? t : q;
 }
-function zahl(x){
-  if(x >= 10 || Math.abs(x - Math.round(x)) < 0.01) return String(Math.round(x*100)/100).replace('.', ',');
+// Zahl zerlegen: ganzer Teil + Bruch (¼ ½ ¾ ⅓ ⅔) oder Dezimalzahl
+function zahlTeile(x){
+  if(x >= 10 || Math.abs(x - Math.round(x)) < 0.01) return {g: String(Math.round(x*100)/100).replace('.', ','), b: ''};
   const g = Math.floor(x + 1e-9), r = x - g;
-  const br = [[.25,'¼'],[.5,'½'],[.75,'¾'],[1/3,'⅓'],[2/3,'⅔']].find(([w]) => Math.abs(r-w) < .02);
-  if(br) return (g || '') + br[1];
-  return String(Math.round(x*100)/100).replace('.', ',');
+  const br = [[.25,'1/4','¼'],[.5,'1/2','½'],[.75,'3/4','¾'],[1/3,'1/3','⅓'],[2/3,'2/3','⅔']].find(([w]) => Math.abs(r-w) < .02);
+  if(br) return {g: g ? String(g) : '', b: br[1], u: br[2]};
+  return {g: String(Math.round(x*100)/100).replace('.', ','), b: ''};
 }
-function mengeText(m, einheit, faktor = 1){
-  if(m == null || m === '') return '';
+const zahl = x => { const t = zahlTeile(x); return t.g + (t.u || ''); };                       // für Text (Teilen, Erinnerungen)
+const zahlHtml = x => { const t = zahlTeile(x); return esc(t.g) + (t.b ? `<span class="bruch">${t.b}</span>` : ''); }; // für die Anzeige
+function mengeWert(m, einheit, faktor = 1){
+  if(m == null || m === '') return null;
   let x = m * faktor, e = einheit || '';
   if(e === 'kg'){ x *= 1000; e = 'g'; }
   if(e === 'l'){ x *= 1000; e = 'ml'; }
@@ -314,200 +716,321 @@ function mengeText(m, einheit, faktor = 1){
   if(e === 'ml' && x >= 1000){ x /= 1000; e = 'l'; }
   x = runde(x, e);
   if(x === 0) x = m * faktor;
-  return zahl(x) + (e ? ' ' + e : '');
+  return {x, e};
+}
+function mengeText(m, einheit, faktor = 1){ const w = mengeWert(m, einheit, faktor); return w ? zahl(w.x) + (w.e ? ' ' + w.e : '') : ''; }
+function mengeHtml(m, einheit, faktor = 1, ca = false){
+  const w = mengeWert(m, einheit, faktor); if(!w) return '';
+  return (ca ? '≈&nbsp;' : '') + zahlHtml(w.x) + (w.e ? `&nbsp;<small>${esc(w.e)}</small>` : '');
 }
 function zutatZeile(z, faktor){
   const m = mengeText(z.menge, z.einheit, faktor);
   return {m: (z.geschaetzt && m ? '≈ ' : '') + m, n: z.name + (z.hinweis ? ', ' + z.hinweis : '')};
 }
+function zutatenHtml(r, f){
+  let html = '<ul class="zutaten">', gruppe = null;
+  for(const z of r.zutaten || []){
+    if((z.gruppe || null) !== gruppe){ gruppe = z.gruppe || null; if(gruppe) html += `</ul><h3 class="zutaten-gruppe">${esc(gruppe)}</h3><ul class="zutaten">`; }
+    html += `<li><span class="m">${mengeHtml(z.menge, z.einheit, f, z.geschaetzt)}</span><span class="n">${esc(z.name)}${z.hinweis ? `<em>${esc(z.hinweis)}</em>` : ''}</span></li>`;
+  }
+  return (html + '</ul>').replace(/<ul class="zutaten"><\/ul>/g, '');
+}
+
+/* ---------- Thermomix-Angaben ---------- */
+const TM_MUSTER = /\d+(?:[–-]\d+)?\s(?:Sek|Min)\.(?:\/(?:\d+\s°C|[A-Za-zäöüÄÖÜß]+(?:\s\d+)?))+/g;
+// Werte im Schritttext als lavendelfarbene Marke, Umbruch nur nach „/“
+const tmMarkieren = s => esc(s).replace(TM_MUSTER, m => `<span class="tmwert">${m.replace(/ /g, '&nbsp;').replace(/\//g, '/<wbr>')}</span>`);
+// Erste Angabe im Schritt in Zeit / Temperatur / Stufe / Linkslauf zerlegen
+function tmAngabe(s){
+  const m = s.match(TM_MUSTER); if(!m) return null;
+  const [zeit, ...rest] = m[0].split('/');
+  const z = zeit.match(/^(\d+(?:[–-]\d+)?)\s(Sek|Min)/);
+  const a = {zeit: z[1], einheit: z[2] === 'Min' ? 'Minuten' : 'Sekunden', sek: z[2] === 'Min' ? parseInt(z[1]) * 60 : parseInt(z[1]),
+    temp: null, stufe: null, sanft: false, links: false, text: m[0]};
+  for(const t of rest){
+    if(/°C$/.test(t)) a.temp = t.replace(/\s°C$/, '');
+    else if(t === 'Varoma') a.temp = 'Varoma';
+    else if(t === 'Linkslauf') a.links = true;
+    else if(t === 'Sanftrührstufe') a.sanft = true;
+    else if(/^Stufe\s/.test(t)) a.stufe = t.replace(/^Stufe\s/, '');
+    else a.stufe = t;
+  }
+  return a;
+}
 
 /* ---------- Navigation ---------- */
+let startScroll = 0, letzteSeite = '';
 window.addEventListener('hashchange', zeigen);
-$('#zurueck').addEventListener('click', () => history.length > 1 ? history.back() : (location.hash = '#/'));
-function kopf(titel, zurueck){
-  $('#titel').textContent = titel; $('#zurueck').hidden = !zurueck;
-  document.title = titel === 'Kochbuch' ? 'Kochbuch' : titel + ' · Kochbuch';
-}
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-zurueck]')) history.length > 1 ? history.back() : (location.hash = '#/');
+});
+const kopfZurueck = (text = 'Zurück') => `<header class="kopf"><button class="zurueck" data-zurueck>${ic('chevron-left')}${esc(text)}</button></header>`;
+function titel(t){ document.title = t === 'Kochbuch' ? 'Kochbuch' : t + ' · Kochbuch'; }
 function leiste(n){
-  document.querySelectorAll('#leiste a').forEach(a => a.classList.toggle('aktiv', a.dataset.n === n));
+  document.querySelectorAll('#leiste a').forEach(a => a.dataset.n === n ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   const anz = speicher.get('einkauf', []).length;
   $('#ekZahl').hidden = !anz; $('#ekZahl').textContent = anz;
 }
 function zeigen(){
   if(!DATEN) return;
+  if(letzteSeite === 'start') startScroll = window.scrollY;
   stopKoch();
   const teile = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
   const main = $('#inhalt');
+  main.style.paddingBottom = '';
+  letzteSeite = teile[0] || 'start';
+  if(teile[0] === 'kochen' && rezeptVon(teile[1])) return kochModus(rezeptVon(teile[1]));
   window.scrollTo(0, 0);
   if(teile[0] === 'rezept' && rezeptVon(teile[1])) return seiteRezept(main, rezeptVon(teile[1]));
-  if(teile[0] === 'kochen' && rezeptVon(teile[1])) return kochModus(rezeptVon(teile[1]));
   if(teile[0] === 'liste') return seiteListe(main, teile[1], teile[2]);
   if(teile[0] === 'einkauf') return seiteEinkauf(main);
   if(teile[0] === 'mehr') return seiteMehr(main);
+  letzteSeite = 'start';
   seiteStart(main);
+  window.scrollTo(0, startScroll);
 }
 
+/* ---------- Saison ---------- */
+function saisonJetzt(){
+  const m = new Date().getMonth() + 1;
+  if(m === 11 || m === 12) return {tags:['Winter','Weihnachten'], name:'Winter', icon:'snowflake'};
+  if(m <= 2) return {tags:['Winter'], name:'Winter', icon:'snowflake'};
+  if(m <= 5) return {tags:['Frühling'], name:'Frühling', icon:'flower-2'};
+  if(m <= 8) return {tags:['Sommer'], name:'Sommer', icon:'sun'};
+  return {tags:['Herbst'], name:'Herbst', icon:'leaf'};
+}
+const saisonRezepte = () => { const s = saisonJetzt(); return DATEN.rezepte.filter(r => (r.saison || []).some(t => s.tags.includes(t))); };
+
 /* ---------- Startseite ---------- */
+const FILTER_STANDARD = {art:'alle'};
+const filterAktuell = () => speicher.get('filter', FILTER_STANDARD);
 function seiteStart(main){
-  kopf('Kochbuch', false); leiste('start');
-  const reiter = speicher.get('reiter', 'anlass');
+  titel('Kochbuch'); leiste('start');
   const suche = sessionStorage.getItem('kb.suche') || '';
   main.innerHTML = `
+    <header class="kopf"><h1>Kochbuch</h1></header>
     ${installHinweis()}
-    <input class="suche" id="suche" type="search" placeholder="Rezept, Zutat oder Stichwort suchen" value="${esc(suche)}" aria-label="Suche">
+    <label class="feld suche">${ic('search')}<span class="sr">Suche</span>
+      <input id="suche" type="search" placeholder="Rezept oder Zutat suchen" value="${esc(suche)}" enterkeyhint="search" autocomplete="off">
+      <button class="feldknopf" id="sucheWeg" aria-label="Suche löschen" ${suche ? '' : 'hidden'}>${ic('x')}</button></label>
+    <div class="filter" id="filter" role="group" aria-label="Filter"></div>
     <div id="ergebnis"></div>`;
   const zeichne = () => {
     const q = $('#suche').value.trim();
     sessionStorage.setItem('kb.suche', q);
-    $('#ergebnis').innerHTML = q ? karten(suchen(q), 'Nichts gefunden.') : verzeichnis(speicher.get('reiter','anlass'));
-    document.querySelectorAll('.reiter button').forEach(b => b.onclick = () => { speicher.set('reiter', b.dataset.r); zeichne(); });
+    $('#sucheWeg').hidden = !q;
+    $('#filter').innerHTML = filterLeiste(filterAktuell());
+    $('#ergebnis').innerHTML = q ? suchErgebnis(q, filterAktuell()) : verzeichnis(filterAktuell());
   };
+  const setzeFilter = f => { speicher.set('filter', f); zeichne(); };
   $('#suche').addEventListener('input', zeichne);
+  $('#suche').addEventListener('keydown', e => { if(e.key === 'Enter') e.target.blur(); });
+  $('#sucheWeg').onclick = () => { $('#suche').value = ''; zeichne(); $('#suche').focus(); };
+  startFilter = setzeFilter;
   zeichne();
-  const ih = $('#installieren button'); if(ih) ih.onclick = () => { speicher.set('installGesehen', true); $('#installieren').remove(); };
+  const ih = main.querySelector('.installieren button'); if(ih) ih.onclick = () => { speicher.set('installGesehen', true); main.querySelector('.installieren').remove(); };
 }
-function verzeichnis(reiter){
-  const knoepfe = Object.entries({...GRUPPEN, sterne:'Sterne', alle:'Alle'}).map(([k, v]) =>
-    `<button data-r="${k}" class="${k === reiter ? 'aktiv' : ''}">${v}</button>`).join('');
-  let inhalt;
-  if(!DATEN.rezepte.length) inhalt = '<p class="leer">Noch keine Rezepte im Kochbuch.</p>';
-  else if(reiter === 'alle') inhalt = karten([...DATEN.rezepte].sort((a,b) => sortDe(a.titel, b.titel)));
-  else if(reiter === 'sterne') inhalt = nachSternen();
-  else{
-    const zaehl = {};
-    DATEN.rezepte.forEach(r => (r[reiter] || []).forEach(t => zaehl[t] = (zaehl[t] || 0) + 1));
-    const tags = Object.keys(zaehl).sort(sortDe);
-    inhalt = tags.length ? `<div class="kacheln">${tags.map(t =>
-      `<a class="kachel" href="#/liste/${reiter}/${encodeURIComponent(t)}"><b>${esc(t)}</b><span>${zaehl[t]}</span></a>`).join('')}</div>`
-      : '<p class="leer">Hier ist noch nichts eingeordnet.</p>';
-  }
-  return `<div class="reiter">${knoepfe}</div>${inhalt}`;
+// Filterknöpfe und Auswahllisten (einmal angemeldet, wirken nur auf der Startseite)
+let startFilter = null;
+$('#inhalt').addEventListener('click', e => {
+  const b = e.target.closest('[data-filter]'); if(!b || letzteSeite !== 'start') return;
+  e.preventDefault();
+  const [art, wert] = b.dataset.filter.split('|');
+  if(b.dataset.leeren) $('#suche').value = '';
+  startFilter(art === 'alle' ? FILTER_STANDARD : {art, wert});
+  if(art === 'saison') window.scrollTo(0, 0);
+});
+$('#inhalt').addEventListener('change', e => {
+  const s = e.target.closest('select[data-g]'); if(!s || letzteSeite !== 'start') return;
+  startFilter(s.value ? {art: s.dataset.g, wert: s.value} : FILTER_STANDARD);
+});
+function zaehle(gruppe){
+  const z = {};
+  DATEN.rezepte.forEach(r => (r[gruppe] || []).forEach(t => z[t] = (z[t] || 0) + 1));
+  return z;
 }
-function suchen(q){
+function filterLeiste(f){
+  const knopf = (wert, inhalt, an) => `<button data-filter="${esc(wert)}" aria-pressed="${an}">${inhalt}</button>`;
+  const wahl = (gruppe, name) => {
+    const z = zaehle(gruppe), an = f.art === gruppe;
+    const tags = Object.keys(z).sort((a, b) => z[b] - z[a] || sortDe(a, b));
+    return `<label class="wahl ${an ? 'an' : ''}"><span>${esc(an ? f.wert : name)}</span>${ic('chevron-down', 'klein')}
+      <select data-g="${gruppe}" aria-label="${esc(name)} wählen"><option value="">${an ? 'Alle Rezepte' : esc(name) + ' wählen'}</option>
+      ${tags.map(t => `<option value="${esc(t)}" ${an && f.wert === t ? 'selected' : ''}>${esc(t)} (${z[t]})</option>`).join('')}</select></label>`;
+  };
+  const typen = zaehle('typ');
+  const typListe = Object.keys(typen).filter(t => typen[t] >= 2).sort((a, b) => typen[b] - typen[a] || sortDe(a, b));
+  return knopf('alle', `Alle <small>${DATEN.rezepte.length}</small>`, f.art === 'alle')
+    + knopf('sterne', `${ic('star', 'klein')}Sterne`, f.art === 'sterne')
+    + wahl('anlass', 'Anlass') + wahl('hauptzutat', 'Zutat')
+    + typListe.map(t => knopf('typ|' + t, esc(t), f.art === 'typ' && f.wert === t)).join('')
+    + (f.art === 'saison' ? knopf('saison|' + f.wert, `${ic(saisonJetzt().icon, 'klein')}${esc(f.wert)}`, true) : '');
+}
+function gefiltert(f){
+  if(f.art === 'alle' || f.art === 'sterne') return DATEN.rezepte;
+  if(f.art === 'saison') return saisonRezepte();
+  return DATEN.rezepte.filter(r => (r[f.art] || []).includes(f.wert));
+}
+const filterName = f => f.art === 'sterne' ? 'bewertete Rezepte' : f.art === 'saison' ? f.wert + 'rezepte' : f.wert;
+function verzeichnis(f){
+  if(!DATEN.rezepte.length) return '<section class="leer"><h2>Noch keine Rezepte</h2><p>Rezepte kommen über eine Claude-Sitzung ins Kochbuch.</p></section>';
+  if(f.art === 'sterne') return nachSternen();
+  const liste = [...gefiltert(f)].sort((a, b) => sortDe(a.titel, b.titel));
+  if(f.art === 'alle') return saisonBild() + `<div class="raster-kopf"><h2>Alle Rezepte</h2><span>A bis Z</span></div>` + raster(liste);
+  return `<div class="raster-kopf erster"><h2>${esc(filterName(f))}</h2><span>${mehrzahl(liste.length, 'Rezept', 'Rezepte')}</span></div>` + raster(liste);
+}
+function saisonBild(){
+  const s = saisonJetzt(), liste = saisonRezepte(), mitBild = liste.filter(r => r.bild);
+  if(!mitBild.length) return '';
+  const tag = Math.floor(Date.now() / 864e5);
+  const r = mitBild[tag % mitBild.length];   // jeden Tag ein anderes
+  return `<a class="saison vollbreit" href="#/rezept/${encodeURIComponent(r.id)}">
+      <img src="${esc(r.bild)}" alt="" decoding="async">
+      <div class="unter" style="padding-inline:var(--rand)"><span class="zeile">${ic(s.icon, 'klein')}Passt in den ${esc(s.name)}</span><h2>${esc(r.titel)}</h2></div></a>
+    <a class="saison-link" href="#" data-filter="saison|${esc(s.name)}">Alle ${liste.length} ${esc(s.name)}rezepte ${ic('chevron-right', 'klein')}</a>`;
+}
+function suchen(q, basis = DATEN.rezepte){
   const w = q.toLowerCase().split(/\s+/).filter(Boolean);
-  return DATEN.rezepte.filter(r => {
+  return basis.filter(r => {
     const text = [r.titel, r.kurzbeschreibung, ...(r.anlass||[]), ...(r.hauptzutat||[]), ...(r.typ||[]), ...(r.saison||[]),
       ...(r.zutaten||[]).map(z => z.name), r.anmerkungen].join(' ').toLowerCase();
     return w.every(x => text.includes(x));
   }).sort((a,b) => sortDe(a.titel, b.titel));
 }
-// Verzeichnis nach Sternen: Durchschnitt aller Kochtagebuch-Einträge (alle Leser), auf ganze Sterne gerundet
+function suchErgebnis(q, f){
+  const imFilter = f.art !== 'alle' && f.art !== 'sterne';
+  const treffer = suchen(q, gefiltert(f));
+  if(treffer.length) return `<div class="raster-kopf erster"><h2>${mehrzahl(treffer.length, 'Treffer', 'Treffer')}</h2><span>${imFilter ? 'in ' + esc(filterName(f)) : 'A bis Z'}</span></div>` + raster(treffer);
+  const ueberall = imFilter ? suchen(q).length : 0;
+  // Vorschläge: Hauptzutaten der Rezepte, die gerade in die Saison passen
+  const z = {}; saisonRezepte().forEach(r => (r.hauptzutat || []).forEach(t => z[t] = (z[t] || 0) + 1));
+  const vor = Object.keys(z).sort((a, b) => z[b] - z[a]).slice(0, 5);
+  return `<section class="leer">${ic('search-x', 'gross')}
+    <h2>Kein Rezept mit „${esc(q)}“</h2>
+    <p>Gesucht in Titeln, Zutaten und Stichworten ${imFilter ? 'der ' + esc(filterName(f)) : 'aller ' + DATEN.rezepte.length + ' Rezepte'}.</p>
+    ${vor.length ? `<p class="nebenkopf" style="margin-top:var(--space-m)">Passt gerade in den ${esc(saisonJetzt().name)}</p>
+    <div class="vorschlaege" style="margin-top:0">${vor.map(t => `<button data-filter="hauptzutat|${esc(t)}" data-leeren="1">${esc(t)}<small>${z[t]}</small></button>`).join('')}</div>` : ''}
+    <div class="knoepfe">${ueberall ? `<button class="knopf haupt" data-filter="alle">Im ganzen Kochbuch suchen (${ueberall})</button>` : ''}
+      <button class="knopf neben" data-filter="${esc(f.art === 'alle' ? 'alle' : f.art + '|' + (f.wert || ''))}" data-leeren="1">${ic('x')}Suche löschen</button></div>
+  </section>`;
+}
+const kurzTitel = t => t.split(' – ')[0];
+function kachel(r, mitSternen = false){
+  const s = mitSternen ? sterneSchnitt(r.id) : 0;
+  return `<li><a class="kachel" href="#/rezept/${encodeURIComponent(r.id)}">
+    ${r.bild ? `<img src="${esc(vorschau(r))}" alt="" loading="lazy" decoding="async" width="400" height="400">` : '<img alt="">'}
+    <b>${esc(kurzTitel(r.titel))}</b><span>${s ? `<span class="wert-s">${ic('star')}${zahl(Math.round(s * 10) / 10)}</span>` : ''}${esc((r.typ || [])[0] || '')}${hatTM(r) ? `<i class="tm" title="mit Thermomix-Fassung">${ic('x-thermomix')}<span class="sr">Thermomix</span></i>` : ''}</span></a></li>`;
+}
+const raster = (liste, mitSternen) => liste.length ? `<ul class="raster">${liste.map(r => kachel(r, mitSternen)).join('')}</ul>` : '<p class="hinweis">Keine Rezepte.</p>';
+
+// Filter „Sterne“: Durchschnitt aller Kochtagebuch-Einträge (alle Leser), auf ganze Sterne gerundet
 function nachSternen(){
   const gruppen = {5:[],4:[],3:[],2:[],1:[]}, ohne = [];
   DATEN.rezepte.forEach(r => { const s = sterneSchnitt(r.id); s ? gruppen[Math.min(5, Math.max(1, Math.round(s)))].push(r) : ohne.push(r); });
   const nachSchnitt = l => l.sort((a,b) => sterneSchnitt(b.id) - sterneSchnitt(a.id) || sortDe(a.titel, b.titel));
-  const teile = [5,4,3,2,1].filter(n => gruppen[n].length).map(n =>
-    `<h3 class="sterngruppe"><span class="sterne">${sterneText(n)}</span> <span class="hinweis">${gruppen[n].length}</span></h3>` + karten(nachSchnitt(gruppen[n])));
-  if(!teile.length) teile.push('<p class="leer">Noch nichts bewertet. Sterne vergibst du im Rezept unter „Kochtagebuch“ (Wie war\'s?).</p>');
-  if(ohne.length) teile.push(`<div class="kacheln"><a class="kachel" href="#/liste/sterne/unbewertet"><b>Noch nicht bewertet</b><span>${ohne.length}</span></a></div>`);
+  const teile = [5,4,3,2,1].filter(n => gruppen[n].length).map((n, k) =>
+    `<div class="raster-kopf ${k ? '' : 'erster'}"><h2><span class="sterne" aria-label="${n} von 5 Sternen">${sterneIcons(n)}</span></h2><span>${mehrzahl(gruppen[n].length, 'Rezept', 'Rezepte')}</span></div>` + raster(nachSchnitt(gruppen[n]), true));
+  if(!teile.length) teile.push(`<section class="leer" style="padding-top:var(--space-l)">${ic('star', 'gross')}<h2>Noch nichts bewertet</h2>
+    <p>Sterne vergibst du im Rezept ganz unten im Kochtagebuch, wenn du es gekocht hast.</p></section>`);
+  if(ohne.length) teile.push(`<a class="zeilen-link" href="#/liste/sterne/unbewertet">Noch nicht bewertet<span>${ohne.length}${ic('chevron-right', 'klein')}</span></a>`);
   return teile.join('');
 }
 function sterneSchnitt(id){
   const e = (TB.eintraege[id] || []).filter(x => x.sterne);
   return e.length ? e.reduce((s,x) => s + x.sterne, 0) / e.length : 0;
 }
-function karten(liste, leer = 'Keine Rezepte.'){
-  if(!liste.length) return `<p class="leer">${leer}</p>`;
-  return `<div class="karten">${liste.map(r => {
-    const n = (TB.eintraege[r.id] || []).length, s = sterneSchnitt(r.id);
-    const unter = [ (r.typ||[]).join(' · '), n ? `${n}× gekocht` : '', s ? '★ ' + zahl(Math.round(s*2)/2) : '' ].filter(Boolean).join('  ·  ');
-    return `<a class="rk" href="#/rezept/${encodeURIComponent(r.id)}">${r.bild ? `<img src="${esc(r.bild)}" alt="" loading="lazy">` : ''}
-      <div class="txt"><h3>${esc(r.titel)}</h3><p>${esc(r.kurzbeschreibung)}</p>
-      ${unter ? `<div class="unter">${esc(unter)}</div>` : ''}</div></a>`;
-  }).join('')}</div>`;
-}
+const sterneIcons = n => [1,2,3,4,5].map(k => ic('star', k <= n ? 'voll' : 'aus')).join('');
 function seiteListe(main, gruppe, tag){
-  kopf(tag || 'Rezepte', true); leiste('start');
-  const liste = DATEN.rezepte.filter(r => gruppe === 'sterne' ? !sterneSchnitt(r.id) : (r[gruppe] || []).includes(tag)).sort((a,b) => sortDe(a.titel, b.titel));
-  if(gruppe === 'sterne') kopf('Noch nicht bewertet', true);
-  main.innerHTML = `<p class="hinweis">${esc(GRUPPEN[gruppe] || 'Sterne')}: ${liste.length} Rezept${liste.length === 1 ? '' : 'e'}</p>` + karten(liste);
+  leiste('start');
+  const unbewertet = gruppe === 'sterne';
+  const liste = DATEN.rezepte.filter(r => unbewertet ? !sterneSchnitt(r.id) : (r[gruppe] || []).includes(tag)).sort((a,b) => sortDe(a.titel, b.titel));
+  const t = unbewertet ? 'Noch nicht bewertet' : tag;
+  titel(t);
+  main.innerHTML = kopfZurueck() + `<h1 class="titel" style="margin-top:0">${esc(t)}</h1>
+    <p class="hinweis" style="margin:var(--space-2xs) 0 var(--space-m)">${esc(unbewertet ? 'Ohne Sterne im Kochtagebuch' : GRUPPEN[gruppe] || '')} · ${mehrzahl(liste.length, 'Rezept', 'Rezepte')}</p>` + raster(liste);
 }
 
 /* ---------- Rezept ---------- */
 function seiteRezept(main, r){
-  kopf(r.titel, true); leiste('start');
+  titel(r.titel); leiste('start');
   const p = PORT[r.id] ?? r.portionen;
   const f = p / r.portionen;
-  const hatTM = (r.thermomix || []).length > 0;
-  const fassung = hatTM && speicher.get('fassung', 'thermomix') === 'thermomix' ? 'thermomix' : 'klassisch';
-  const chipGr = g => (r[g] || []).map(t => `<a class="chip" href="#/liste/${g}/${encodeURIComponent(t)}">${esc(t)}</a>`).join('');
+  const tm = hatTM(r);
+  const fassung = tm && speicher.get('fassung', 'thermomix') === 'thermomix' ? 'thermomix' : 'klassisch';
   const original = r.variante_von && rezeptVon(r.variante_von);
   const varianten = DATEN.rezepte.filter(x => x.variante_von === r.id);
   const q = r.quelle || {};
   const quelle = (Array.isArray(q) ? q : [q]).filter(x => x && (x.titel || x.url)).map(x =>
-    x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.titel || x.url)}</a>` : esc(x.titel)).join(' · ');
-
-  let zut = '', gruppe = null;
-  for(const z of r.zutaten || []){
-    if((z.gruppe || null) !== gruppe){ gruppe = z.gruppe || null; if(gruppe) zut += `</ul><div class="gruppe">${esc(gruppe)}</div><ul class="zutaten">`; }
-    const zz = zutatZeile(z, f);
-    zut += `<li><span class="m">${esc(zz.m)}</span><span>${esc(z.name)}${z.hinweis ? `<span class="h">, ${esc(z.hinweis)}</span>` : ''}</span></li>`;
-  }
+    x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.titel || x.url)}</a>` : esc(x.titel)).join(', ');
+  const schlagworte = ['typ', 'anlass', 'hauptzutat'].flatMap(g => (r[g] || []).map(t => `<a href="#/liste/${g}/${encodeURIComponent(t)}">${esc(t)}</a>`));
+  const s = sterneSchnitt(r.id);
+  const saison = (r.saison || []).filter(x => x !== 'ganzjährig');
 
   main.innerHTML = `<article class="rezept">
-    ${r.bild ? `<img class="foto" src="${esc(r.bild)}" alt="${esc(r.titel)}">` : ''}
-    <h2>${esc(r.titel)}</h2>
+    ${kopfZurueck()}
+    ${r.bild ? `<img class="foto vollbreit" src="${esc(r.bild)}" alt="${esc(r.titel)}" style="width:calc(100% + 2 * var(--rand));max-width:none">` : ''}
+    <h1 class="titel">${esc(r.titel)}</h1>
     <p class="kurz">${esc(r.kurzbeschreibung)}</p>
-    <div class="chips">${chipGr('typ')}${chipGr('anlass')}${chipGr('hauptzutat')}
-      ${(r.saison||[]).map(s => `<span class="chip gruen">${esc(s)}</span>`).join('')}
-      ${(r.allergene||[]).map(a => `<span class="chip warn">enthält ${esc(a)}</span>`).join('')}</div>
-    ${r.zeit ? `<p class="meta">⏱ ${esc(r.zeit)}</p>` : ''}
-    ${original ? `<p class="meta">Variante von <a href="#/rezept/${encodeURIComponent(original.id)}">${esc(original.titel)}</a>${r.variante_art ? ' – ' + esc(r.variante_art) : ''}</p>` : ''}
-    ${varianten.length ? `<p class="meta">Varianten: ${varianten.map(v => `<a href="#/rezept/${encodeURIComponent(v.id)}">${esc(v.variante_art || v.titel)}</a>`).join(', ')}</p>` : ''}
-    ${r.zusammengefuehrt_aus ? `<p class="meta">Zusammengeführt aus: ${esc(r.zusammengefuehrt_aus.join(' + '))}</p>` : ''}
-
-    <div class="knoepfe">
-      <button class="knopf haupt breit" id="aufZettel">🛒 Auf den Einkaufszettel (${p} Port.)</button>
-      <a class="knopf" href="#/kochen/${encodeURIComponent(r.id)}">👩‍🍳 Kochmodus</a>
-      <button class="knopf" id="teilen">↗︎ Teilen</button>
-      <button class="knopf breit" id="drucken">🖨 Drucken / als PDF</button>
+    <ul class="fakten">
+      ${r.zeit ? `<li>${ic('clock')}<span>${esc(r.zeit)}</span></li>` : ''}
+      ${tm ? `<li class="tm">${ic('x-thermomix')}<span>Mit Thermomix-Fassung</span></li>` : ''}
+      ${saison.length ? `<li class="saison-f">${ic('sprout')}<span>${esc(saison.join(', '))}</span></li>` : ''}
+      ${(r.allergene || []).length ? `<li class="allergen">${ic('triangle-alert')}<span>Enthält ${esc(r.allergene.join(', '))}</span></li>` : ''}
+      ${s ? `<li><span class="sterne" aria-label="im Schnitt ${zahl(Math.round(s*10)/10)} von 5 Sternen">${sterneIcons(Math.round(s))}</span></li>` : ''}
+      ${original ? `<li class="leise">${ic('git-branch')}<span>Variante von <a href="#/rezept/${encodeURIComponent(original.id)}">${esc(original.titel)}</a>${r.variante_art ? ' – ' + esc(r.variante_art) : ''}</span></li>` : ''}
+      ${varianten.length ? `<li class="leise">${ic('git-branch')}<span>Varianten: ${varianten.map(v => `<a href="#/rezept/${encodeURIComponent(v.id)}">${esc(v.variante_art || v.titel)}</a>`).join(', ')}</span></li>` : ''}
+    </ul>
+    <div class="handlungen">
+      <a class="knopf haupt" href="#/kochen/${encodeURIComponent(r.id)}">${ic('play')}Kochmodus starten</a>
+      <button class="knopf neben" id="aufZettel">${ic('list-plus')}Auf den Einkaufszettel</button>
+      <div class="klein"><button class="knopf leise" id="teilen">${ic('share', 'klein')}Teilen</button><button class="knopf leise" id="drucken">${ic('printer', 'klein')}Drucken</button></div>
     </div>
 
     <section class="abschnitt">
-      <h3>Zutaten</h3>
-      <div class="portionen">
-        <button id="weniger" aria-label="Weniger Portionen">−</button>
-        <output>${p} Portion${p === 1 ? '' : 'en'}</output>
-        <button id="mehr" aria-label="Mehr Portionen">+</button>
-        ${p !== r.portionen ? `<button id="zurueckP" style="width:auto;border-radius:10px;padding:0 10px;font-size:13px">Original: ${r.portionen}</button>` : ''}
+      <div class="abschnitt-kopf"><h2>Zutaten</h2>
+        <div class="portionen" role="group" aria-label="Portionen"><button id="weniger" aria-label="Weniger Portionen" ${p <= 1 ? 'disabled' : ''}>${ic('minus')}</button><output aria-live="polite">${p}<small>Port.</small></output><button id="mehrP" aria-label="Mehr Portionen">${ic('plus')}</button></div>
       </div>
-      <ul class="zutaten">${zut}</ul>
+      ${p !== r.portionen ? `<p class="umgerechnet"><span>Umgerechnet von ${r.portionen} auf ${p} Portionen</span><button id="zurueckP">Zurück auf ${r.portionen}</button></p>` : ''}
+      ${zutatenHtml(r, f)}
       ${(r.zutaten||[]).some(z => z.geschaetzt) ? '<p class="hinweis">≈ Menge geschätzt, in der Quelle nicht genau angegeben.</p>' : ''}
     </section>
 
     <section class="abschnitt">
-      <h3>Zubereitung</h3>
-      ${hatTM ? `<div class="umschalter"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">Meine Fassung (Thermomix)</button>
-        <button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
-      <ol class="schritte">${(fassung === 'thermomix' ? r.thermomix : r.zubereitung || []).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+      <h2>Zubereitung</h2>
+      ${tm ? fassungUmschalter(fassung, true) : ''}
+      <ol class="schritte">${(fassung === 'thermomix' ? r.thermomix : r.zubereitung || []).map((x, i) => `<li><span class="nr">${i + 1}</span><p>${tmMarkieren(x)}</p></li>`).join('')}</ol>
     </section>
 
-    ${r.anmerkungen ? `<section class="abschnitt"><h3>Anmerkungen</h3><div class="anm">${esc(r.anmerkungen)}</div></section>` : ''}
-    ${quelle ? `<p class="meta">Quelle: ${quelle}</p>` : ''}
+    ${r.anmerkungen ? `<section class="abschnitt anm"><h2>Anmerkungen</h2>${r.anmerkungen.split(/\n\s*\n/).map(x => `<p style="white-space:pre-line">${esc(x)}</p>`).join('')}</section>` : ''}
+    <p class="quelle">${schlagworte.length ? `<span class="schlagworte">${schlagworte.join('')}</span>` : ''}
+      ${quelle ? `Quelle: ${quelle}.` : ''}${r.zusammengefuehrt_aus ? ` Zusammengeführt aus: ${esc(r.zusammengefuehrt_aus.join(' + '))}.` : ''}${r.bild ? ' Foto KI-erzeugt.' : ''}</p>
 
     <section class="abschnitt" id="tb-bereich">
-      <h3>Kochtagebuch</h3>
+      <h2>Kochtagebuch</h2>
       <div id="tbListe">${tagebuchListe(r.id)}</div>
-      ${speicher.get('token', '') ? `<button class="knopf" style="width:100%;margin-top:10px" id="tbNeu">＋ Heute gekocht – Eintrag schreiben</button><div id="tbForm"></div>` : ''}
+      ${speicher.get('token', '') ? `<button class="knopf neben voll" style="margin-top:var(--space-xs)" id="tbNeu">${ic('notebook-pen')}Heute gekocht – eintragen</button><div id="tbForm"></div>` : ''}
     </section>
   </article>`;
 
-  const setP = n => { PORT[r.id] = Math.max(1, n); seiteRezept(main, r); };
+  const setP = n => { PORT[r.id] = Math.max(1, n); const y = window.scrollY; seiteRezept(main, r); window.scrollTo(0, y); };
   $('#weniger').onclick = () => setP(p - 1);
-  $('#mehr').onclick = () => setP(p + 1);
-  if($('#zurueckP')) $('#zurueckP').onclick = () => { delete PORT[r.id]; seiteRezept(main, r); };
-  document.querySelectorAll('.umschalter button').forEach(b => b.onclick = () => { speicher.set('fassung', b.dataset.f); seiteRezept(main, r); });
+  $('#mehrP').onclick = () => setP(p + 1);
+  if($('#zurueckP')) $('#zurueckP').onclick = () => { delete PORT[r.id]; const y = window.scrollY; seiteRezept(main, r); window.scrollTo(0, y); };
+  main.querySelectorAll('.fassung button').forEach(b => b.onclick = () => { speicher.set('fassung', b.dataset.f); const y = window.scrollY; seiteRezept(main, r); window.scrollTo(0, y); });
   $('#aufZettel').onclick = () => {
     const ek = speicher.get('einkauf', []);
     const vorh = ek.find(x => x.id === r.id);
     if(vorh) vorh.portionen = p; else ek.push({id:r.id, portionen:p});
     speicher.set('einkauf', ek); leiste('start');
-    meldung(vorh ? `Auf dem Zettel jetzt mit ${p} Portionen.` : `„${r.titel}“ ist auf dem Einkaufszettel.`);
+    meldung(vorh ? `Auf dem Zettel jetzt für ${p} Portionen.` : `Für ${p} Portionen auf dem Zettel.`, 3500, {text:'Zum Zettel', href:'#/einkauf'});
   };
   $('#teilen').onclick = () => teilen(r.titel, rezeptAlsText(r, p));
   $('#drucken').onclick = () => window.print();
   if($('#tbNeu')) $('#tbNeu').onclick = () => tagebuchFormular(r);
 }
+const fassungUmschalter = (fassung, klein) => `<div class="fassung ${klein ? 'klein' : ''}" role="group" aria-label="Fassung">
+    <button data-f="thermomix" aria-pressed="${fassung === 'thermomix'}">${ic('x-thermomix')}Thermomix</button>
+    <button data-f="klassisch" aria-pressed="${fassung === 'klassisch'}">${ic('cooking-pot')}Topf &amp; Pfanne</button></div>`;
 
 function rezeptAlsText(r, p){
   const f = p / r.portionen;
@@ -518,7 +1041,7 @@ function rezeptAlsText(r, p){
     const zz = zutatZeile(z, f); zeilen.push('• ' + (zz.m ? zz.m + ' ' : '') + zz.n);
   }
   zeilen.push('', 'Zubereitung:', ...(r.zubereitung || []).map((s, i) => `${i+1}. ${s}`));
-  if((r.thermomix||[]).length) zeilen.push('', 'Mit dem Thermomix:', ...r.thermomix.map((s, i) => `${i+1}. ${s}`));
+  if(hatTM(r)) zeilen.push('', 'Mit dem Thermomix:', ...r.thermomix.map((s, i) => `${i+1}. ${s}`));
   if(r.anmerkungen) zeilen.push('', 'Anmerkungen:', r.anmerkungen);
   return zeilen.join('\n');
 }
@@ -529,24 +1052,26 @@ async function teilen(titel, text){
 }
 
 /* ---------- Kochtagebuch ---------- */
-const sterneText = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
 function tagebuchListe(id){
   const e = [...(TB.eintraege[id] || [])].sort((a,b) => b.datum.localeCompare(a.datum));
   if(!e.length) return '<p class="hinweis">Noch nicht gekocht – oder noch nicht eingetragen.</p>';
   const darf = !!speicher.get('token', '');
-  return e.map(x => `<div class="tb-eintrag"><div class="tb-kopf"><span>${new Date(x.datum + 'T12:00').toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'})}</span>
-    <span class="sterne">${sterneText(x.sterne)}</span></div>${x.notiz ? `<div class="anm">${esc(x.notiz)}</div>` : ''}
-    ${darf ? `<button class="weg nicht-drucken" style="font-size:13px" data-weg="${esc(x.nr)}">Eintrag löschen</button>` : ''}</div>`).join('');
+  return `<ul class="tb">${e.map(x => `<li><div class="tb-kopf"><span>${new Date(x.datum + 'T12:00').toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'})}</span>
+    ${x.sterne ? `<span class="sterne" aria-label="${x.sterne} von 5 Sternen">${sterneIcons(x.sterne)}</span>` : ''}</div>${x.notiz ? `<p style="white-space:pre-line">${esc(x.notiz)}</p>` : ''}
+    ${darf ? `<button class="knopf leise warn nicht-drucken" data-weg="${esc(x.nr)}">${ic('trash-2', 'klein')}Eintrag löschen</button>` : ''}</li>`).join('')}</ul>`;
 }
 function tagebuchFormular(r){
   let sterne = 0;
   const heute = new Date().toISOString().slice(0, 10);
   $('#tbNeu').hidden = true;
-  $('#tbForm').innerHTML = `<label>Datum</label><input type="date" id="tbDatum" value="${heute}">
-    <label>Wie war's?</label><div class="sternwahl">${[1,2,3,4,5].map(i => `<button data-s="${i}" aria-label="${i} Sterne">☆</button>`).join('')}</div>
-    <label>Notiz (z. B. „nächstes Mal weniger Chili“)</label><textarea id="tbNotiz"></textarea>
-    <div class="knoepfe"><button class="knopf" id="tbAbbr">Abbrechen</button><button class="knopf haupt" id="tbOk">Speichern</button></div>`;
-  const malen = () => document.querySelectorAll('.sternwahl button').forEach(b => b.textContent = +b.dataset.s <= sterne ? '★' : '☆');
+  $('#tbForm').innerHTML = `<div class="tb-form">
+    <label for="tbDatum">Datum</label><input type="date" id="tbDatum" value="${heute}">
+    <label>Wie war's?</label><div class="sternwahl" role="group" aria-label="Sterne">${[1,2,3,4,5].map(i => `<button data-s="${i}" aria-label="${i} von 5 Sternen" aria-pressed="false">${ic('star')}</button>`).join('')}</div>
+    <label for="tbNotiz">Notiz, z. B. „nächstes Mal weniger Chili“</label><textarea id="tbNotiz"></textarea>
+    <div class="knoepfe" style="margin-top:var(--space-2xs)"><button class="knopf neben" id="tbAbbr">Abbrechen</button><button class="knopf haupt" id="tbOk">Speichern</button></div></div>`;
+  const malen = () => document.querySelectorAll('.sternwahl button').forEach(b => {
+    const an = +b.dataset.s <= sterne; b.querySelector('svg').classList.toggle('voll', an); b.setAttribute('aria-pressed', +b.dataset.s === sterne);
+  });
   document.querySelectorAll('.sternwahl button').forEach(b => b.onclick = () => { sterne = +b.dataset.s; malen(); });
   $('#tbAbbr').onclick = () => { $('#tbForm').innerHTML = ''; $('#tbNeu').hidden = false; };
   $('#tbOk').onclick = async () => {
@@ -589,59 +1114,135 @@ async function tagebuchAendern(aenderung){
 }
 
 /* ---------- Kochmodus ---------- */
-let wachHalter = null, kochTaste = null;
+let wachHalter = null, kochTaste = null, kochMalen = null;
+// Zeitangabe im klassischen Schritt; bei Spannen wie „45–60 Min.“ die kürzere Zeit: lieber früher nachsehen
+function zeitAngabe(s){
+  const u = s.match(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(Min(?:\.|uten)?|Sek(?:\.|unden)?|Std(?:\.|unden)?)/i);
+  if(!u) return null;
+  const n = +u[1], art = /^Std/i.test(u[3]) ? 'Std.' : /^Sek/i.test(u[3]) ? 'Sek.' : 'Min.';
+  return {sek: art === 'Std.' ? n*3600 : art === 'Sek.' ? n : n*60, text: n + ' ' + art};
+}
+// Zutaten, die im Schritttext vorkommen („Zwiebeln“ findet auch „Zwiebel“)
+function zutatenImSchritt(r, s, f){
+  const t = s.toLowerCase();
+  const NICHT = ['frisch','frische','gemahlen','gehackt','etwas','große','kleine','groß','klein','weiße','weißer','schwarzer','brauner','zimmerwarm'];
+  return (r.zutaten || []).filter(z => {
+    const n = (z.name || '').toLowerCase().replace(/\(.*?\)/g, '');
+    if(t.includes(n.trim())) return true;
+    return n.split(/[\s,\/-]+/).filter(w => w.length >= 4 && !NICHT.includes(w)).some(w => t.includes(w.slice(0, Math.max(4, w.length - 2))));
+  }).slice(0, 8).map(z => `<li>${z.menge != null ? `<b>${mengeHtml(z.menge, z.einheit, f, z.geschaetzt)}</b>` : ''}${esc(z.name)}</li>`).join('');
+}
 async function kochModus(r){
-  const hatTM = (r.thermomix || []).length > 0;
-  let fassung = hatTM && speicher.get('fassung', 'thermomix') === 'thermomix' ? 'thermomix' : 'klassisch';
+  const tm = hatTM(r);
+  let fassung = tm && speicher.get('fassung', 'thermomix') === 'thermomix' ? 'thermomix' : 'klassisch';
   let i = 0;
-  const box = $('#koch'); box.hidden = false;
+  const p = PORT[r.id] ?? r.portionen, f = p / r.portionen;
+  const box = $('#koch'); box.hidden = false; document.body.style.overflow = 'hidden';
   try{ wachHalter = await navigator.wakeLock?.request('screen'); }catch(e){}
   const malen = () => {
-    const schritte = fassung === 'thermomix' ? r.thermomix : r.zubereitung;
-    i = Math.min(i, schritte.length - 1);
-    const s = schritte[i] || '';
-    const uhr = s.match(/(\d+)(?:\s*[–-]\s*(\d+))?\s*(Min(?:\.|uten)?|Sek(?:\.|unden)?|Std(?:\.|unden)?)/i);
-    let sek = 0;
-    if(uhr){ const n = +uhr[1]; /* bei Spannen wie „45–60 Min.“ die kürzere Zeit: lieber früher nachsehen */ sek = /^Std/i.test(uhr[3]) ? n*3600 : /^Sek/i.test(uhr[3]) ? n : n*60; }
-    box.innerHTML = `<div class="oben"><b>${esc(r.titel)}</b>
-        ${hatTM ? `<div class="umschalter" style="margin:0"><button data-f="thermomix" class="${fassung==='thermomix'?'aktiv':''}">Thermomix</button><button data-f="klassisch" class="${fassung==='klassisch'?'aktiv':''}">Klassisch</button></div>` : ''}
-        <button class="knopf" id="kochZu">Fertig</button></div>
-      <details style="margin-top:10px"><summary class="hinweis">Zutaten (${PORT[r.id] ?? r.portionen} Port.)</summary>
-        <ul class="zutaten">${(r.zutaten||[]).map(z => { const zz = zutatZeile(z, (PORT[r.id] ?? r.portionen) / r.portionen); return `<li><span class="m">${esc(zz.m)}</span><span>${esc(zz.n)}</span></li>`; }).join('')}</ul></details>
-      <div class="schritt"><div class="nr">Schritt ${i+1} von ${schritte.length}</div><div>${esc(s)}</div>
-        ${sek > 0 ? `<div><button class="knopf uhr" id="uhrStart">⏱ ${esc(uhr[1] + ' ' + uhr[3])} – Wecker stellen</button></div>` : ''}</div>
-      <div class="unten"><button class="knopf" id="zur" ${i === 0 ? 'disabled' : ''}>‹ Zurück</button>
-        <button class="knopf haupt" id="vor" ${i >= schritte.length - 1 ? 'disabled' : ''}>Weiter ›</button></div>`;
+    const schritte = (fassung === 'thermomix' ? r.thermomix : r.zubereitung) || [];
+    i = Math.max(0, Math.min(i, schritte.length - 1));
+    const s = schritte[i] || '', n = schritte.length;
+    const tmA = fassung === 'thermomix' ? tmAngabe(s) : null;
+    const zeit = tmA ? (tmA.einheit === 'Minuten' ? {sek: tmA.sek, text: parseInt(tmA.zeit) + ' Min.'} : null) : zeitAngabe(s);
+    const weckerKnopf = zeit ? `<button class="wecker-start" id="uhrStart">${ic('timer')}Wecker ${esc(zeit.text)} starten</button>` : '';
+    const dazu = zutatenImSchritt(r, s, f);
+    const naechster = schritte[i + 1];
+    box.innerHTML = `<main class="koch">
+      <header class="koch-kopf">
+        <button class="zu" id="kochZu" aria-label="Kochmodus beenden">${ic('x')}</button>
+        <div><b>${esc(r.titel)}</b><span>für ${mehrzahl(p, 'Portion', 'Portionen')}</span></div>
+      </header>
+      ${tm ? fassungUmschalter(fassung) : ''}
+      <nav class="fortschritt" aria-label="Schritte">
+        <ol>${schritte.map((_, k) => `<li class="${k < i ? 'fertig' : k === i ? 'jetzt' : ''}"></li>`).join('')}</ol>
+        <span>Schritt <b>${i + 1}</b> von ${n}</span>
+      </nav>
+      <div class="mitte">
+        <div id="kochWecker"></div>
+        ${tmA ? `<section class="anzeige" aria-label="Einstellung am Thermomix">
+          <div class="werte">
+            <div class="wert"><small>Zeit</small><strong>${esc(tmA.zeit)}</strong><em>${tmA.einheit}</em></div>
+            <div class="wert"><small>Temperatur</small>${tmA.temp === 'Varoma' ? '<strong class="wort">Varoma</strong><em>Dampf</em>' : tmA.temp ? `<strong>${esc(tmA.temp)}°</strong><em>Celsius</em>` : '<strong>–</strong><em>ohne Hitze</em>'}</div>
+            <div class="wert"><small>Stufe</small>${tmA.sanft ? `<strong>${RUEHR}</strong><em>Sanftrühr.</em>` : tmA.stufe ? `<strong ${/^\d+$/.test(tmA.stufe) ? '' : 'class="wort"'}>${esc(tmA.stufe)}</strong><em>&nbsp;</em>` : '<strong>–</strong><em>&nbsp;</em>'}</div>
+          </div>
+          ${tmA.links ? `<p class="lauf">${ic('rotate-ccw')}Linkslauf einschalten</p>` : ''}
+          ${weckerKnopf}
+        </section>` : weckerKnopf}
+        <p class="koch-text ${fassung === 'thermomix' ? 'tm' : 'gross'}">${tmMarkieren(s)}</p>
+        ${dazu ? `<h2 class="nebenkopf">Kommt in diesem Schritt vor</h2><ul class="dazu">${dazu}</ul>` : ''}
+        ${naechster ? `<p class="danach"><b>Danach:</b> ${esc(naechster.length > 140 ? naechster.slice(0, 140).replace(/\s\S*$/, '') + ' …' : naechster)}</p>` : ''}
+        <details><summary>${ic('list-plus', 'klein')}Alle Zutaten für ${p} Port.</summary>${zutatenHtml(r, f)}</details>
+      </div>
+      <footer class="koch-unten">
+        <button class="z" id="zur" aria-label="Zurück zu Schritt ${i}" ${i === 0 ? 'disabled' : ''}>${ic('chevron-left')}</button>
+        ${i >= n - 1 ? `<button class="w fertig" id="vor">Fertig ${ic('check')}</button>` : `<button class="w" id="vor">Weiter zu ${i + 2}${ic('chevron-right')}</button>`}
+        <p class="wisch" style="grid-column:1/-1">${ic('arrow-left-right')}oder zur Seite wischen</p>
+      </footer></main>`;
+    box.scrollTop = 0;
     $('#kochZu').onclick = () => history.back();
     $('#zur').onclick = () => { i--; malen(); };
-    $('#vor').onclick = () => { i++; malen(); };
-    box.querySelectorAll('.umschalter button').forEach(b => b.onclick = () => { fassung = b.dataset.f; speicher.set('fassung', fassung); i = 0; malen(); });
-    if($('#uhrStart')) $('#uhrStart').onclick = () => wecker(sek, uhr[1] + ' ' + uhr[3]);
+    $('#vor').onclick = () => { if(i >= n - 1) history.back(); else { i++; malen(); } };
+    box.querySelectorAll('.fassung button').forEach(b => b.onclick = () => { fassung = b.dataset.f; speicher.set('fassung', fassung); i = 0; malen(); });
+    if($('#uhrStart')) $('#uhrStart').onclick = () => wecker(zeit.sek, zeit.text);
+    weckerMalen();
   };
-  kochTaste = e => { if(e.key === 'ArrowRight' && !$('#vor').disabled){ i++; malen(); } if(e.key === 'ArrowLeft' && !$('#zur').disabled){ i--; malen(); } };
+  kochMalen = malen;
+  const schritt = d => { const n = ((fassung === 'thermomix' ? r.thermomix : r.zubereitung) || []).length; if(i + d >= 0 && i + d < n){ i += d; malen(); } };
+  kochTaste = e => { if(e.key === 'ArrowRight') schritt(1); if(e.key === 'ArrowLeft') schritt(-1); if(e.key === 'Escape') history.back(); };
   document.addEventListener('keydown', kochTaste);
+  // Wischen: nach links = weiter, nach rechts = zurück
+  let x0 = null, y0 = null;
+  box.ontouchstart = e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; };
+  box.ontouchend = e => {
+    if(x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) schritt(dx < 0 ? 1 : -1);
+  };
   malen();
 }
 function stopKoch(){
-  $('#koch').hidden = true;
+  const box = $('#koch');
+  if(!box.hidden){ box.hidden = true; box.innerHTML = ''; document.body.style.overflow = ''; }
+  kochMalen = null;
   if(wachHalter){ wachHalter.release().catch(() => {}); wachHalter = null; }
   if(kochTaste){ document.removeEventListener('keydown', kochTaste); kochTaste = null; }
+  weckerMalen();
 }
-let weckerZeit = null, weckerTakt = null, ton = null;
+
+/* ---------- Wecker ---------- */
+let weckerZeit = null, weckerText = '', weckerTakt = null, ton = null;
 function wecker(sek, text){
-  clearInterval(weckerTakt);
-  weckerZeit = Date.now() + sek * 1000;
-  const w = $('#wecker'); w.hidden = false; w.classList.remove('klingelt');
+  weckerZeit = Date.now() + sek * 1000; weckerText = text;
   try{ ton = ton || new (window.AudioContext || window.webkitAudioContext)(); ton.resume(); }catch(e){}
-  const takt = () => {
-    const rest = Math.max(0, Math.round((weckerZeit - Date.now()) / 1000));
-    const mm = Math.floor(rest / 60), ss = String(rest % 60).padStart(2, '0');
-    w.innerHTML = `<span>⏱ ${mm}:${ss}</span><button id="weckerAus">✕</button>`;
-    $('#weckerAus').onclick = () => { clearInterval(weckerTakt); w.hidden = true; };
-    if(rest === 0){ w.classList.add('klingelt'); w.querySelector('span').textContent = '⏰ ' + text + ' sind um'; piep(); navigator.vibrate?.([400,200,400,200,400]); }
-  };
-  takt(); weckerTakt = setInterval(takt, 1000);
+  clearInterval(weckerTakt); weckerTakt = setInterval(weckerMalen, 1000);
+  weckerMalen();
 }
+function weckerAus(){ clearInterval(weckerTakt); weckerTakt = null; weckerZeit = null; weckerMalen(); }
+let geklingelt = false;
+function weckerMalen(){
+  const fest = $('#wecker'), imKoch = $('#kochWecker');
+  const startKnopf = $('#uhrStart'); if(startKnopf) startKnopf.hidden = !!weckerZeit;
+  if(!weckerZeit){ fest.hidden = true; fest.innerHTML = ''; if(imKoch) imKoch.innerHTML = ''; geklingelt = false; return; }
+  const rest = Math.max(0, Math.round((weckerZeit - Date.now()) / 1000));
+  const h = Math.floor(rest / 3600), mm = Math.floor(rest % 3600 / 60), ss = String(rest % 60).padStart(2, '0');
+  const anzeige = h ? `${h}:${String(mm).padStart(2, '0')}:${ss}` : `${mm}:${ss}`;
+  const html = `<div class="rest"><strong>${ic(rest ? 'timer' : 'alarm-clock')}${rest ? anzeige : 'Zeit!'}</strong><span>${rest ? 'Wecker ' + esc(weckerText) : esc(weckerText) + ' sind um'}</span></div>
+    <button data-wecker="plus">+5 Min.</button><button data-wecker="aus" aria-label="Wecker aus">Aus</button>`;
+  const ziel = imKoch || fest;
+  if(imKoch){ fest.hidden = true; fest.innerHTML = ''; ziel.className = 'wecker-lauf'; ziel.setAttribute('role', 'timer'); }
+  else fest.hidden = false;
+  ziel.innerHTML = html;
+  ziel.classList.toggle('klingelt', !rest);
+  if(!rest && !geklingelt){ geklingelt = true; piep(); navigator.vibrate?.([400,200,400,200,400]); }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-wecker]'); if(!b) return;
+  if(b.dataset.wecker === 'aus') return weckerAus();
+  weckerZeit = Math.max(weckerZeit, Date.now()) + 300000; geklingelt = false;
+  if(!weckerTakt) weckerTakt = setInterval(weckerMalen, 1000);
+  weckerMalen();
+});
 function piep(){
   if(!ton) return;
   for(let k = 0; k < 3; k++){ const o = ton.createOscillator(), g = ton.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ton.destination);
@@ -671,94 +1272,110 @@ function einkaufsPosten(){
     }
   }
   return [...sammel.values()].map(p => {
-    let text;
-    if(p.menge == null) text = p.name;
-    else if(ZAEHLBAR.includes(p.einheit.toLowerCase())) text = zahl(Math.ceil(p.menge - 1e-9)) + (p.einheit ? ' ' + p.einheit : '') + ' ' + p.name;
-    else text = mengeText(p.menge, p.einheit) + ' ' + p.name;
-    return {...p, text, schluessel: p.name.toLowerCase() + '|' + p.einheit};
+    let m = '', mHtml = '';
+    if(p.menge != null && ZAEHLBAR.includes(p.einheit.toLowerCase())){
+      const n = Math.ceil(p.menge - 1e-9);
+      m = n + (p.einheit ? ' ' + p.einheit : ''); mHtml = n + (p.einheit ? `&nbsp;<small>${esc(p.einheit)}</small>` : '');
+    }else if(p.menge != null){ m = mengeText(p.menge, p.einheit); mHtml = mengeHtml(p.menge, p.einheit); }
+    return {...p, m, mHtml, text: (m ? m + ' ' : '') + p.name, schluessel: p.name.toLowerCase() + '|' + p.einheit};
   });
 }
 function seiteEinkauf(main){
-  kopf('Einkaufszettel', false); leiste('einkauf');
+  titel('Einkaufszettel'); leiste('einkauf');
   const ek = speicher.get('einkauf', []);
   if(!ek.length){
-    main.innerHTML = `<p class="leer">Der Einkaufszettel ist leer.<br>Öffne ein Rezept, stelle die Portionen ein und tippe auf „Auf den Einkaufszettel“.</p>`;
+    main.innerHTML = `<header class="kopf"><h1>Einkaufszettel</h1></header>
+      <section class="leer">${ic('shopping-basket', 'gross')}<h2>Der Zettel ist leer</h2>
+      <p>Öffne ein Rezept, stell die Portionen ein und tippe auf „Auf den Einkaufszettel“. Die Zutaten mehrerer Rezepte werden hier zusammengerechnet.</p>
+      <div class="knoepfe" style="margin-top:var(--space-m)"><a class="knopf haupt" href="#/">${ic('book-open')}Zum Kochbuch</a></div></section>`;
     return;
   }
   const hab = new Set(speicher.get('habIch', []));
   const posten = einkaufsPosten();
+  const offen = posten.filter(p => !hab.has(p.schluessel)), schon = posten.filter(p => hab.has(p.schluessel));
   const nachBereich = {};
-  posten.forEach(p => (nachBereich[p.bereich] ||= []).push(p));
+  offen.forEach(p => (nachBereich[p.bereich] ||= []).push(p));
   const reihenfolge = Object.keys(nachBereich).sort((a,b) => (BEREICHE.indexOf(a)+99) % 99 - (BEREICHE.indexOf(b)+99) % 99 || sortDe(a,b));
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  main.innerHTML = `
-    <section class="abschnitt"><h3>Rezepte</h3>
-      ${ek.map((x, k) => { const r = rezeptVon(x.id); return r ? `<div class="ek-rezept"><a href="#/rezept/${encodeURIComponent(r.id)}">${esc(r.titel)}</a>
-        <div class="portionen"><button data-k="${k}" data-d="-1">−</button><output>${x.portionen}</output><button data-k="${k}" data-d="1">+</button></div>
-        <button class="weg" data-raus="${k}" aria-label="Entfernen">✕</button></div>` : ''; }).join('')}
-    </section>
-    <section class="abschnitt"><h3>Zu kaufen</h3>
-      <p class="hinweis">Antippen, was schon im Haus ist – das wird nicht übertragen.</p>
-      ${reihenfolge.map(b => `<div class="bereich">${esc(b)}</div>` + nachBereich[b].map(p =>
-        `<label class="posten ${hab.has(p.schluessel) ? 'hab' : ''}"><input type="checkbox" data-s="${esc(p.schluessel)}" ${hab.has(p.schluessel) ? 'checked' : ''}>
-          <span>${esc(p.text)}</span></label>`).join('')).join('')}
-    </section>
-    <div class="knoepfe">
-      ${ios ? `<button class="knopf haupt breit" id="erinnerungen">In Erinnerungen übertragen</button>` : ''}
-      <button class="knopf ${ios ? '' : 'haupt breit'}" id="ekTeilen">↗︎ Als Text teilen</button>
-      <button class="knopf" id="ekLeeren">Zettel leeren</button>
-    </div>
-    ${ios ? `<p class="hinweis">„In Erinnerungen übertragen“ braucht einmalig den Kurzbefehl „Kochbuch Einkauf“ – Anleitung unter <a href="#/mehr">Mehr</a>.</p>` : ''}`;
+  const liste = (l, h) => `<ul class="posten">${l.map(p => `<li class="${h ? 'hab' : ''}" data-s="${esc(p.schluessel)}" title="${esc([...p.rezepte].join(', '))}">
+    <span class="haken" role="checkbox" tabindex="0" aria-checked="${h}" aria-label="${esc(p.name)} ${h ? 'ist schon im Haus' : 'schon im Haus?'}">${ic('check')}</span>
+    <span class="m">${p.mHtml}</span><span class="n">${esc(p.name)}</span></li>`).join('')}</ul>`;
+  main.style.paddingBottom = 'calc(var(--leiste-h) + 110px + env(safe-area-inset-bottom))';
+  main.innerHTML = `<header class="kopf"><h1>Einkaufszettel</h1></header>
+    ${ek.map((x, k) => { const r = rezeptVon(x.id); return r ? `<div class="ek-rezept">
+      ${r.bild ? `<img src="${esc(vorschau(r))}" alt="">` : '<span class="ohne-bild"></span>'}
+      <a href="#/rezept/${encodeURIComponent(r.id)}">${esc(r.titel)}<small>für ${mehrzahl(x.portionen, 'Portion', 'Portionen')}</small></a>
+      <div class="portionen" role="group" aria-label="Portionen"><button data-k="${k}" data-d="-1" aria-label="Weniger" ${x.portionen <= 1 ? 'disabled' : ''}>${ic('minus')}</button><output>${x.portionen}</output><button data-k="${k}" data-d="1" aria-label="Mehr">${ic('plus')}</button></div>
+      <button class="raus" data-raus="${k}" aria-label="${esc(r.titel)} vom Zettel nehmen">${ic('x')}</button></div>` : ''; }).join('')}
+    <p class="stand"><span><b>${offen.length}</b> ${offen.length === 1 ? 'Ding' : 'Dinge'} zu kaufen</span><span>${schon.length} schon im Haus</span></p>
+    <p class="hinweis ek-hinweis">Antippen, was schon im Haus ist – das wird nicht übertragen.</p>
+    ${reihenfolge.map(b => `<section class="bereich"><h3>${esc(b)}<span>${nachBereich[b].length}</span></h3>${liste(nachBereich[b], false)}</section>`).join('')}
+    ${schon.length ? `<section class="bereich"><h3>Schon im Haus<span>${schon.length}</span></h3>${liste(schon, true)}</section>` : ''}
+    <button class="knopf leise warn" id="ekLeeren" style="margin-top:var(--space-m);padding-left:0">${ic('x', 'klein')}Zettel leeren</button>
+    ${ios ? `<p class="hinweis">„In Erinnerungen übertragen“ braucht einmalig den Kurzbefehl „Kochbuch Einkauf“ – Anleitung unter <a href="#/mehr">Mehr</a>.</p>` : ''}
+    <div class="ek-handlung"><div class="innen">
+      ${ios ? `<button class="knopf haupt" id="erinnerungen">In Erinnerungen übertragen</button><button class="knopf neben" id="ekTeilen" aria-label="Als Text teilen">${ic('share')}</button>`
+        : `<button class="knopf haupt" id="ekTeilen" style="grid-column:1/-1">${ic('share')}Als Text teilen</button>`}
+    </div></div>`;
 
+  const neu = () => { const y = window.scrollY; seiteEinkauf(main); window.scrollTo(0, y); };
   main.querySelectorAll('[data-d]').forEach(b => b.onclick = () => {
-    const k = +b.dataset.k; ek[k].portionen = Math.max(1, ek[k].portionen + +b.dataset.d); speicher.set('einkauf', ek); seiteEinkauf(main);
+    const k = +b.dataset.k; ek[k].portionen = Math.max(1, ek[k].portionen + +b.dataset.d); speicher.set('einkauf', ek); neu();
   });
-  main.querySelectorAll('[data-raus]').forEach(b => b.onclick = () => { ek.splice(+b.dataset.raus, 1); speicher.set('einkauf', ek); seiteEinkauf(main); });
-  main.querySelectorAll('.posten input').forEach(c => c.onchange = () => {
-    c.checked ? hab.add(c.dataset.s) : hab.delete(c.dataset.s); speicher.set('habIch', [...hab]);
-    c.closest('.posten').classList.toggle('hab', c.checked);
+  main.querySelectorAll('[data-raus]').forEach(b => b.onclick = () => { ek.splice(+b.dataset.raus, 1); speicher.set('einkauf', ek); leiste('einkauf'); neu(); });
+  const umschalten = li => { const s = li.dataset.s; hab.has(s) ? hab.delete(s) : hab.add(s); speicher.set('habIch', [...hab]); neu(); };
+  main.querySelectorAll('.posten li').forEach(li => {
+    li.onclick = () => umschalten(li);
+    li.querySelector('.haken').onkeydown = e => { if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); umschalten(li); } };
   });
-  const liste = () => einkaufsPosten().filter(p => !hab.has(p.schluessel)).map(p => p.text);
+  const text = () => einkaufsPosten().filter(p => !hab.has(p.schluessel)).map(p => p.text);
   if($('#erinnerungen')) $('#erinnerungen').onclick = () => {
-    const l = liste(); if(!l.length){ meldung('Nichts zu übertragen.'); return; }
+    const l = text(); if(!l.length){ meldung('Nichts zu übertragen.'); return; }
     location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent('Kochbuch Einkauf') + '&input=text&text=' + encodeURIComponent(l.join('\n'));
   };
-  $('#ekTeilen').onclick = () => teilen('Einkaufsliste', liste().join('\n'));
-  $('#ekLeeren').onclick = () => { if(confirm('Einkaufszettel leeren?')){ speicher.set('einkauf', []); speicher.set('habIch', []); seiteEinkauf(main); } };
+  $('#ekTeilen').onclick = () => teilen('Einkaufsliste', text().join('\n'));
+  $('#ekLeeren').onclick = () => { if(confirm('Einkaufszettel leeren?')){ speicher.set('einkauf', []); speicher.set('habIch', []); leiste('einkauf'); seiteEinkauf(main); } };
 }
 
 /* ---------- Mehr / Einstellungen ---------- */
 function seiteMehr(main){
-  kopf('Mehr', false); leiste('mehr');
-  const token = speicher.get('token', '');
-  main.innerHTML = `
-    <section class="abschnitt"><h3>Vorrat</h3>
-      <label class="posten"><input type="checkbox" id="vorratAn" ${speicher.get('vorratAn', false) ? 'checked' : ''}><span>Vorrat beim Einkaufszettel abziehen</span></label>
-      <div id="vorratFeld" ${speicher.get('vorratAn', false) ? '' : 'hidden'}>
-        <label>Was immer da ist – eine Zutat pro Zeile, so geschrieben wie im Rezept</label>
-        <textarea id="vorrat" rows="5" placeholder="Salz&#10;Pfeffer">${esc(speicher.get('vorrat', ''))}</textarea></div>
+  titel('Mehr'); leiste('mehr');
+  const token = speicher.get('token', ''), vorratAn = speicher.get('vorratAn', false);
+  main.innerHTML = `<header class="kopf"><h1>Mehr</h1></header>
+    <section class="abschnitt" style="padding-top:var(--space-xs)">
+      <h2>Vorrat</h2>
+      <div class="zeile-schalter" id="vorratZeile"><span id="vorratText">Vorrat beim Einkaufszettel abziehen</span><button class="schalter" id="vorratAn" role="switch" aria-checked="${vorratAn}" aria-labelledby="vorratText"></button></div>
+      <div id="vorratFeld" ${vorratAn ? '' : 'hidden'}>
+        <p class="hinweis" style="margin-top:var(--space-xs)">Was immer da ist – eine Zutat pro Zeile, so geschrieben wie im Rezept.</p>
+        <textarea class="vorrat" id="vorrat" rows="4" aria-label="Vorrat" placeholder="Salz&#10;Pfeffer">${esc(speicher.get('vorrat', ''))}</textarea></div>
     </section>
-    <section class="abschnitt"><h3>Kurzbefehl für Erinnerungen (iPhone)</h3>
-      <p class="hinweis">Einmalig in der App <b>Kurzbefehle</b> anlegen:</p>
-      <ol class="hinweis" style="padding-left:20px">
+    <section class="abschnitt">
+      <h2>Kurzbefehl für Erinnerungen</h2>
+      <p class="hinweis">Nur iPhone und iPad. Einmal in der App <b>Kurzbefehle</b> anlegen:</p>
+      <ol class="anleitung">
         <li>„+“ tippen, den Kurzbefehl <b>Kochbuch Einkauf</b> nennen (genau so geschrieben).</li>
         <li>Aktion <b>Text aufteilen</b> hinzufügen (im Suchfeld „aufteilen“ eingeben, nicht „teilen“), bei „Text“ die <b>Kurzbefehleingabe</b> wählen, Trennzeichen <b>Neue Zeilen</b>.</li>
         <li>Aktion <b>Wiederholen mit jedem</b> hinzufügen (zeigt dann „Mit jedem Objekt aus Text aufteilen wiederholen“).</li>
         <li>Darin (eingerückt, vor „Wiederholung beenden“) die Aktion <b>Neue Erinnerung</b>: Text = Variable <b>Objekt wiederholen</b> (blaue Blase unter der Wiederholen-Zeile), Liste = <b>Family</b>.</li>
         <li>In den Details des Kurzbefehls einstellen: empfängt <b>Text</b>.</li>
       </ol>
-      <p class="hinweis">Danach überträgt „In Erinnerungen übertragen“ jede Zeile als eigene Erinnerung.</p>
+      <p class="hinweis" style="margin-top:var(--space-xs)">Danach überträgt „In Erinnerungen übertragen“ jede Zeile als eigene Erinnerung.</p>
     </section>
-    <section class="abschnitt"><h3>Bearbeiten (nur Christian)</h3>
-      <p class="hinweis">Mit dem GitHub-Schlüssel kannst du Einträge ins Kochtagebuch schreiben. Er bleibt nur auf diesem Gerät.</p>
-      <input type="password" id="token" placeholder="GitHub-Schlüssel" value="${esc(token)}" autocomplete="off" aria-label="GitHub-Schlüssel">
-      <div class="knoepfe"><button class="knopf haupt" id="tokenOk">Speichern</button><button class="knopf" id="tokenWeg">Entfernen</button></div>
+    <section class="abschnitt">
+      <h2>Bearbeiten (nur Christian)</h2>
+      <p class="hinweis" style="margin-bottom:var(--space-xs)">Mit dem GitHub-Schlüssel kannst du Einträge ins Kochtagebuch schreiben. Er bleibt nur auf diesem Gerät.</p>
+      <label class="feld">${ic('key-round')}<span class="sr">GitHub-Schlüssel</span><input type="password" id="token" placeholder="GitHub-Schlüssel" value="${esc(token)}" autocomplete="off"><button type="button" class="feldknopf" data-zeigen="token" aria-label="Schlüssel zeigen">${ic('eye')}</button></label>
+      <div class="knoepfe"><button class="knopf haupt" id="tokenOk">Speichern</button><button class="knopf neben warn" id="tokenWeg">Entfernen</button></div>
     </section>
-    <section class="abschnitt"><h3>Über</h3>
-      <p class="hinweis">${DATEN.rezepte.length} Rezepte · Stand ${esc(new Date(DATEN.stand).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'}))} · App ${esc(VERSION)}</p>
-      <div class="knoepfe"><button class="knopf" id="neuLaden">Neu laden</button><button class="knopf" id="abmelden">Abmelden</button></div>
+    <section class="abschnitt">
+      <h2>Über</h2>
+      <div class="ueber">${APPSYMBOL}<p><b>${DATEN.rezepte.length} Rezepte</b><br><span class="hinweis">Stand ${esc(new Date(DATEN.stand).toLocaleString('de-DE', {dateStyle:'medium', timeStyle:'short'}))} Uhr<br>App ${esc(VERSION)}</span></p></div>
+      <div class="knoepfe"><button class="knopf neben" id="neuLaden">${ic('refresh-cw', 'klein')}Neu laden</button><button class="knopf neben" id="abmelden">${ic('log-out', 'klein')}Abmelden</button></div>
     </section>`;
-  $('#vorratAn').onchange = e => { speicher.set('vorratAn', e.target.checked); $('#vorratFeld').hidden = !e.target.checked; };
+  $('#vorratZeile').onclick = () => {
+    const an = !speicher.get('vorratAn', false); speicher.set('vorratAn', an);
+    $('#vorratAn').setAttribute('aria-checked', an); $('#vorratFeld').hidden = !an;
+  };
   $('#vorrat').oninput = e => speicher.set('vorrat', e.target.value);
   $('#tokenOk').onclick = () => { speicher.set('token', $('#token').value.trim()); meldung('Gespeichert.'); };
   $('#tokenWeg').onclick = () => { speicher.weg('token'); $('#token').value = ''; meldung('Entfernt.'); };
@@ -768,16 +1385,19 @@ function seiteMehr(main){
 
 /* ---------- Kleinkram ---------- */
 let meldungTakt;
-function meldung(text, ms = 2500){
-  const m = $('#meldung'); m.textContent = text; m.hidden = false;
+function meldung(text, ms = 2500, aktion){
+  const m = $('#meldung');
+  m.innerHTML = `<span>${esc(text)}</span>${aktion ? `<a href="${esc(aktion.href)}">${esc(aktion.text)}</a>` : ''}`;
+  m.hidden = false;
+  const a = m.querySelector('a'); if(a) a.onclick = () => { m.hidden = true; };
   clearTimeout(meldungTakt); meldungTakt = setTimeout(() => m.hidden = true, ms);
 }
 function installHinweis(){
   const app = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   if(app || speicher.get('installGesehen', false)) return '';
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
-  return `<div id="installieren"><span>📲 ${ios ? 'Als App ablegen: unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.'
-    : 'Als App ablegen: im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> wählen.'}</span><button aria-label="Schließen">✕</button></div>`;
+  return `<div class="installieren">${ic('smartphone')}<span>${ios ? 'Als App ablegen: unten auf <b>Teilen</b> tippen, dann <b>„Zum Home-Bildschirm“</b>.'
+    : 'Als App ablegen: im Browser-Menü <b>„Zum Startbildschirm hinzufügen“</b> wählen.'}</span><button aria-label="Hinweis schließen">${ic('x', 'klein')}</button></div>`;
 }
 
 // Beim Zurückkehren in die App nach neuen Rezepten schauen (Home-Bildschirm-Apps starten nicht neu)
