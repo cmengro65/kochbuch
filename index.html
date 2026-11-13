@@ -497,6 +497,11 @@ a.link{color:var(--akzent);font-weight:700}
 }
 input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none;appearance:none}
 
+/* Gesamtzeit auf der Kachel (13.11.2026) */
+.kachel > span{flex-wrap:wrap;column-gap:8px;row-gap:0}
+.kachel .dauer{color:var(--text);font-weight:700;white-space:nowrap;font-variant-numeric:lining-nums}
+.kachel .art{white-space:nowrap}
+
 </style>
 </head>
 <body>
@@ -528,7 +533,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const VERSION = '202611131455';
+const VERSION = '202611131508';
 const REPO = 'cmengro65/kochbuch';
 const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Gerichtart', saison:'Saison'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
@@ -862,6 +867,7 @@ function filterLeiste(f){
   const typListe = Object.keys(typen).filter(t => typen[t] >= 2).sort((a, b) => typen[b] - typen[a] || sortDe(a, b));
   return knopf('alle', `Alle <small>${DATEN.rezepte.length}</small>`, f.art === 'alle')
     + knopf('sterne', `${ic('star', 'klein')}Sterne`, f.art === 'sterne')
+    + knopf('schnell', `${ic('clock', 'klein')}Schnell`, f.art === 'schnell')
     + wahl('anlass', 'Anlass') + wahl('hauptzutat', 'Zutat')
     + typListe.map(t => knopf('typ|' + t, esc(t), f.art === 'typ' && f.wert === t)).join('')
     + (f.art === 'saison' ? knopf('saison|' + f.wert, `${ic(saisonJetzt().icon, 'klein')}${esc(f.wert)}`, true) : '');
@@ -869,13 +875,16 @@ function filterLeiste(f){
 function gefiltert(f){
   if(f.art === 'alle' || f.art === 'sterne') return DATEN.rezepte;
   if(f.art === 'saison') return saisonRezepte();
+  if(f.art === 'schnell') return DATEN.rezepte.filter(r => r.gesamtzeit && r.gesamtzeit <= SCHNELL);
   return DATEN.rezepte.filter(r => (r[f.art] || []).includes(f.wert));
 }
-const filterName = f => f.art === 'sterne' ? 'bewertete Rezepte' : f.art === 'saison' ? f.wert + 'rezepte' : f.wert;
+const SCHNELL = 30;   // Minuten: Filter „Schnell“
+const filterName = f => f.art === 'schnell' ? 'Schnell' : f.art === 'sterne' ? 'bewertete Rezepte' : f.art === 'saison' ? f.wert + 'rezepte' : f.wert;
 function verzeichnis(f){
   if(!DATEN.rezepte.length) return '<section class="leer"><h2>Noch keine Rezepte</h2><p>Rezepte kommen über eine Claude-Sitzung ins Kochbuch.</p></section>';
   if(f.art === 'sterne') return nachSternen();
-  const liste = [...gefiltert(f)].sort((a, b) => sortDe(a.titel, b.titel));
+  const liste = [...gefiltert(f)].sort((a, b) => f.art === 'schnell' ? a.gesamtzeit - b.gesamtzeit || sortDe(a.titel, b.titel) : sortDe(a.titel, b.titel));
+  if(f.art === 'schnell') return `<div class="raster-kopf erster"><h2>Schnell</h2><span>bis ${SCHNELL} Min., kürzeste zuerst</span></div>` + raster(liste);
   if(f.art === 'alle') return saisonBild() + `<div class="raster-kopf"><h2>Alle Rezepte</h2><span>A bis Z</span></div>` + raster(liste);
   return `<div class="raster-kopf erster"><h2>${esc(filterName(f))}</h2><span>${mehrzahl(liste.length, 'Rezept', 'Rezepte')}</span></div>` + raster(liste);
 }
@@ -915,11 +924,18 @@ function suchErgebnis(q, f){
   </section>`;
 }
 const kurzTitel = t => t.split(' – ')[0];
+// Gesamtzeit kurz: „45 Min.“, „1¼ Std.“, „3 Tage“
+function dauerKurz(min){
+  if(!min) return '';
+  if(min < 60) return min + ' Min.';
+  if(min < 1440) return zahl(Math.round(min / 15) / 4) + ' Std.';
+  const t = Math.round(min / 1440 * 2) / 2; return zahl(t) + (t > 1 ? ' Tage' : ' Tag');
+}
 function kachel(r, mitSternen = false){
   const s = mitSternen ? sterneSchnitt(r.id) : 0;
   return `<li><a class="kachel" href="#/rezept/${encodeURIComponent(r.id)}">
     ${r.bild ? `<img src="${esc(vorschau(r))}" alt="" loading="lazy" decoding="async" width="400" height="400">` : '<img alt="">'}
-    <b>${esc(kurzTitel(r.titel))}</b><span>${s ? `<span class="wert-s">${ic('star')}${zahl(Math.round(s * 10) / 10)}</span>` : ''}${esc((r.typ || [])[0] || '')}${hatTM(r) ? `<i class="tm" title="mit Thermomix-Fassung">${ic('x-thermomix')}<span class="sr">Thermomix</span></i>` : ''}</span></a></li>`;
+    <b>${esc(kurzTitel(r.titel))}</b><span>${s ? `<span class="wert-s">${ic('star')}${zahl(Math.round(s * 10) / 10)}</span>` : ''}${r.gesamtzeit ? `<span class="dauer">${esc(dauerKurz(r.gesamtzeit))}</span>` : ''}<span class="art">${esc((r.typ || [])[0] || '')}</span>${hatTM(r) ? `<i class="tm" title="mit Thermomix-Fassung">${ic('x-thermomix')}<span class="sr">Thermomix</span></i>` : ''}</span></a></li>`;
 }
 const raster = (liste, mitSternen) => liste.length ? `<ul class="raster">${liste.map(r => kachel(r, mitSternen)).join('')}</ul>` : '<p class="hinweis">Keine Rezepte.</p>';
 
