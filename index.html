@@ -186,7 +186,7 @@ label{display:block;font-size:14px;color:var(--leise);margin:10px 0 4px}
 
 <script>
 'use strict';
-const VERSION = '202611130943';
+const VERSION = '202611130944';
 const REPO = 'cmengro65/kochbuch';
 const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Typ'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
@@ -247,6 +247,8 @@ async function start(){
   }
   if(!DATEN){ zeigeAnmeldung(SCHL ? 'Das Passwort hat sich geändert. Bitte neu eingeben.' : ''); return; }
   await ladeTagebuch();
+  // Gespeicherte Anmeldung vor dem Aufräumen durch den Browser schützen
+  try{ navigator.storage?.persist?.(); }catch(e){}
   $('#anmeldung').hidden = true; $('#app').hidden = false;
   zeigen();
 }
