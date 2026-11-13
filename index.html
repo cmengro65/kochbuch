@@ -502,6 +502,17 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .kachel .dauer{color:var(--text);font-weight:700;white-space:nowrap;font-variant-numeric:lining-nums}
 .kachel .art{white-space:nowrap}
 
+/* Startseite nach unten ziehen = aktualisieren (13.11.2026) */
+html{overscroll-behavior-y:none}
+.zieh{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;z-index:40;width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;background:var(--karte);border:1px solid var(--linie);color:var(--leise);
+  box-shadow:0 3px 10px rgba(0,0,0,.12);opacity:0;transform:translate(-50%,-56px);pointer-events:none}
+.zieh .i{width:22px;height:22px}
+.zieh.bereit{color:var(--akzent);border-color:var(--akzent)}
+.zieh.dreht .i{animation:drehen .8s linear infinite}
+@keyframes drehen{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.zieh.dreht .i{animation-duration:2.4s}}
+
 </style>
 </head>
 <body>
@@ -533,7 +544,7 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 
 <script>
 'use strict';
-const VERSION = '202611131835';
+const VERSION = '202611131854';
 const REPO = 'cmengro65/kochbuch';
 const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Gerichtart', saison:'Saison'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
@@ -1423,18 +1434,57 @@ document.addEventListener('visibilitychange', async () => {
   if(document.hidden || $('#koch').hidden || !navigator.wakeLock) return;
   if(!wachHalter || wachHalter.released){ try{ wachHalter = await navigator.wakeLock.request('screen'); }catch(e){} }
 });
-document.addEventListener('visibilitychange', async () => {
-  if(document.hidden || !DATEN || !SCHL || Date.now() - zuletztGeprueft < 30000) return;
+// Neue Rezepte holen. leise = ohne Meldung, wenn nichts Neues da ist
+async function aktualisieren(leise){
   zuletztGeprueft = Date.now();
-  const u = await ladeUmschlag('daten.enc');
-  if(!u || u.ct === UMSCHLAG.ct) return;
+  const u = navigator.onLine === false ? null : await ladeUmschlag('daten.enc');
+  if(!u){ if(!leise) meldung('Keine Verbindung – das Kochbuch bleibt auf dem letzten Stand.', 3500); return; }
+  if(u.ct === UMSCHLAG.ct){ if(!leise) meldung('Kochbuch ist aktuell.'); return; }
   try{
     const neu = await entschluesseln(u, SCHL.roh);
+    const vorher = DATEN.rezepte.length;
     UMSCHLAG = u; DATEN = neu; await ladeTagebuch();
     if($('#koch').hidden) zeigen();
-    meldung('Kochbuch aktualisiert.');
-  }catch(e){}
+    const mehr = DATEN.rezepte.length - vorher;
+    meldung(mehr > 0 ? `Kochbuch aktualisiert: ${mehr} ${mehr === 1 ? 'neues Rezept' : 'neue Rezepte'}.` : 'Kochbuch aktualisiert.');
+  }catch(e){ if(!leise) meldung('Aktualisieren hat nicht geklappt.'); }
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden || !DATEN || !SCHL || Date.now() - zuletztGeprueft < 30000) return;
+  aktualisieren(true);
 });
+
+// Startseite nach unten ziehen = aktualisieren
+(() => {
+  const SCHWELLE = 70, MAX = 110;
+  const ring = document.createElement('div');
+  ring.className = 'zieh'; ring.setAttribute('aria-hidden', 'true'); ring.innerHTML = ic('refresh-cw');
+  document.body.append(ring);
+  let y0 = null, weg = 0, laeuft = false;
+  const setze = (d, sanft) => {
+    ring.style.transition = sanft ? 'transform .25s, opacity .25s' : 'none';
+    ring.style.transform = `translate(-50%, ${d - 56}px) rotate(${d * 3}deg)`;
+    ring.style.opacity = Math.min(1, d / SCHWELLE);
+    ring.classList.toggle('bereit', d >= SCHWELLE);
+  };
+  const erlaubt = () => letzteSeite === 'start' && DATEN && SCHL && !laeuft && $('#koch').hidden && !$('#app').hidden && window.scrollY <= 0;
+  document.addEventListener('touchstart', e => { y0 = (e.touches.length === 1 && erlaubt()) ? e.touches[0].clientY : null; weg = 0; }, {passive: true});
+  document.addEventListener('touchmove', e => {
+    if(y0 === null) return;
+    const d = e.touches[0].clientY - y0;
+    if(d <= 0 || window.scrollY > 0){ if(weg){ weg = 0; setze(0, true); } return; }
+    weg = Math.min(MAX, d * .5); setze(weg);
+  }, {passive: true});
+  document.addEventListener('touchend', async () => {
+    if(y0 === null) return; y0 = null;
+    if(weg < SCHWELLE){ weg = 0; setze(0, true); return; }
+    laeuft = true; ring.classList.add('dreht'); setze(SCHWELLE, true);
+    const anfang = Date.now();
+    await aktualisieren(false);
+    await new Promise(r => setTimeout(r, Math.max(0, 600 - (Date.now() - anfang))));
+    ring.classList.remove('dreht'); weg = 0; setze(0, true); laeuft = false;
+  });
+})();
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 start();
