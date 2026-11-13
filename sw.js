@@ -1,5 +1,5 @@
 // Service Worker: hält die App ohne Internet verfügbar.
-const CACHE = 'kochbuch-202611131316';
+const CACHE = 'kochbuch-202611131343';
 const SCHALE = ['./', 'index.html', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -8,7 +8,7 @@ self.addEventListener('install', e => {
     .then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n !== CACHE && n !== 'kochbuch-bilder').map(n => caches.delete(n))))
+  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n !== CACHE && n !== 'kochbuch-bilder' && n !== 'kochbuch-schriften').map(n => caches.delete(n))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
@@ -25,6 +25,14 @@ self.addEventListener('fetch', e => {
   // Fotos: einmal laden, dann dauerhaft aus dem Speicher (Name ändert sich mit dem Inhalt)
   if(url.pathname.includes('/bilder/')){
     e.respondWith(caches.open('kochbuch-bilder').then(c => c.match(e.request).then(t => t || fetch(e.request).then(r => {
+      if(r.ok) c.put(e.request, r.clone());
+      return r;
+    }))));
+    return;
+  }
+  // Schriften (.woff2 im App-Ordner): einmal laden, dann dauerhaft offline. Neue Schrift = neuer Dateiname.
+  if(url.pathname.endsWith('.woff2')){
+    e.respondWith(caches.open('kochbuch-schriften').then(c => c.match(e.request).then(t => t || fetch(e.request).then(r => {
       if(r.ok) c.put(e.request, r.clone());
       return r;
     }))));
