@@ -223,7 +223,8 @@ h1,h2,h3{font-family:var(--f-head);font-weight:800;line-height:1.08;letter-spaci
 .fakten .allergen{color:var(--warn);font-weight:650}
 .fakten .leise{color:var(--leise)}
 .handlungen{display:grid;gap:var(--space-2xs);margin-top:var(--space-s)}
-.handlungen .klein{display:flex;justify-content:center;gap:var(--space-s)}
+.handlungen .klein{display:flex;flex-wrap:wrap;justify-content:center;gap:0 var(--space-2xs)}
+.handlungen .klein .knopf{padding-inline:8px;gap:8px;white-space:nowrap}
 
 .portionen{display:flex;align-items:center;gap:2px;background:var(--karte);border:1px solid var(--linie);border-radius:var(--r-feld);padding:3px}
 .portionen button{width:44px;height:44px;display:grid;place-items:center;border-radius:8px;color:var(--akzent)}
@@ -542,9 +543,10 @@ html{overscroll-behavior-y:none}
 <section id="wecker" class="wecker-lauf" role="timer" aria-label="Wecker" hidden></section>
 <div id="meldung" class="meldung" role="status" hidden></div>
 
+<script src="pdf.js?v=202611241335"></script>
 <script>
 'use strict';
-const VERSION = '202611241300';
+const VERSION = '202611241335';
 const REPO = 'cmengro65/kochbuch';
 const GRUPPEN = {anlass:'Anlass', hauptzutat:'Zutat', typ:'Gerichtart', saison:'Saison'};
 const BEREICHE = ['Obst & Gemüse','Fleisch & Fisch','Kühlregal','Brot & Backwaren','Trockenware','Konserven & Gläser',
@@ -567,7 +569,7 @@ const IC = {"search":"<path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" 
   "triangle-alert":"<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/>",
   "play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>",
   "share":"<path d=\"M12 2v13\"/><path d=\"m16 6-4-4-4 4\"/><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\"/>",
-  "printer":"<path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\"/>",
+  "file-text":"<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"/><path d=\"M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8\"/>","printer":"<path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\"/>",
   "plus":"<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>",
   "minus":"<path d=\"M5 12h14\"/>",
   "check":"<path d=\"M20 6 9 17l-5-5\"/>",
@@ -1010,7 +1012,7 @@ function seiteRezept(main, r){
     <div class="handlungen">
       <a class="knopf haupt" href="#/kochen/${encodeURIComponent(r.id)}">${ic('play')}Kochmodus starten</a>
       <button class="knopf neben" id="aufZettel">${ic('list-plus')}Auf den Einkaufszettel</button>
-      <div class="klein"><button class="knopf leise" id="teilen">${ic('share', 'klein')}Teilen</button><button class="knopf leise" id="drucken">${ic('printer', 'klein')}Drucken</button></div>
+      <div class="klein"><button class="knopf leise" id="teilen">${ic('share', 'klein')}Teilen</button><button class="knopf leise" id="pdf" aria-label="Als PDF senden">${ic('file-text', 'klein')}PDF</button><button class="knopf leise" id="drucken">${ic('printer', 'klein')}Drucken</button></div>
     </div>
 
     <section class="abschnitt">
@@ -1052,6 +1054,7 @@ function seiteRezept(main, r){
     meldung(vorh ? `Auf dem Zettel jetzt für ${p} Portionen.` : `Für ${p} Portionen auf dem Zettel.`, 3500, {text:'Zum Zettel', href:'#/einkauf'});
   };
   $('#teilen').onclick = () => teilen(r.titel, rezeptAlsText(r, p));
+  $('#pdf').onclick = () => alsPdf(r, p, $('#pdf'));
   $('#drucken').onclick = () => window.print();
   if($('#tbNeu')) $('#tbNeu').onclick = () => tagebuchFormular(r);
 }
@@ -1071,6 +1074,28 @@ function rezeptAlsText(r, p){
   if(hatTM(r)) zeilen.push('', 'Mit dem Thermomix:', ...r.thermomix.map((s, i) => `${i+1}. ${s}`));
   if(r.anmerkungen) zeilen.push('', 'Anmerkungen:', r.anmerkungen);
   return zeilen.join('\n');
+}
+// Rezept als PDF: Teilen-Menü mit Datei (Mail, Nachrichten, WhatsApp …), sonst herunterladen
+async function alsPdf(r, p, knopf){
+  if(knopf.disabled) return;
+  knopf.disabled = true;
+  try{
+    const f = p / r.portionen;
+    const q = (Array.isArray(r.quelle) ? r.quelle : [r.quelle]).filter(Boolean).map(x => x.titel || x.url).filter(Boolean).join(', ');
+    const blob = await rezeptPdf({titel:r.titel, kurz:r.kurzbeschreibung, portionen:p, zeit:r.zeit, allergene:r.allergene || [],
+      bild:r.bild, zutaten:(r.zutaten || []).map(z => ({gruppe:z.gruppe || '', ...zutatZeile(z, f)})),
+      geschaetzt:(r.zutaten || []).some(z => z.geschaetzt), zubereitung:r.zubereitung || [], thermomix:hatTM(r) ? r.thermomix : [],
+      anmerkungen:r.anmerkungen || '', quelle:q});
+    const datei = new File([blob], r.titel.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() + '.pdf', {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[datei]})){
+      try{ await navigator.share({files:[datei]}); return; }
+      catch(e){ if(e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(datei); a.download = datei.name;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    meldung('PDF gespeichert.');
+  }catch(e){ console.error(e); meldung('Das PDF konnte nicht erstellt werden.'); }
+  finally{ knopf.disabled = false; }
 }
 async function teilen(titel, text){
   if(navigator.share){ try{ await navigator.share({title:titel, text}); return; }catch(e){ if(e.name === 'AbortError') return; } }
