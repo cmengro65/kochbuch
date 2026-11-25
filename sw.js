@@ -1,5 +1,5 @@
 // Service Worker: hält die App ohne Internet verfügbar.
-const CACHE = 'kochbuch-202611241335';
+const CACHE = 'kochbuch-202611251416';
 const SCHALE = ['./', 'index.html', 'pdf.js', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
